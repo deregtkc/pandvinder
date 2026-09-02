@@ -408,7 +408,14 @@
   const TARGET = { lat: 53.218611, lon: 6.568331 };
 
   const THEMES = ["mutuafides", "light", "dark", "classic"];
-  let themeIndex = 0;
+  const THEME_KEY = "pv-theme";
+  function loadStoredThemeIndex() {
+    try {
+      const idx = THEMES.indexOf(localStorage.getItem(THEME_KEY));
+      return idx >= 0 ? idx : 0;
+    } catch (e) { return 0; }
+  }
+  let themeIndex = loadStoredThemeIndex();
 
   const ARROW_NEEDLE = `
     <polygon points="50,6 60,54 50,46 40,54" fill="var(--accent)"/>
@@ -460,6 +467,8 @@
   let orientationEventName = null;
   let rafId = null;
   let startSession = 0;
+  let wakeLock = null;
+  let isCompassActive = false; // true from a successful start until retry/leave
 
   function showScreen(name) {
     Object.values(screens).forEach(s => s.classList.remove("active"));
@@ -475,6 +484,7 @@
   function applyTheme() {
     document.documentElement.setAttribute("data-theme", THEMES[themeIndex]);
     buildNeedle();
+    try { localStorage.setItem(THEME_KEY, THEMES[themeIndex]); } catch (e) { /* ignore */ }
   }
   themeBtn.addEventListener("click", () => {
     themeIndex = (themeIndex + 1) % THEMES.length;
@@ -775,6 +785,37 @@
     lastOrientationTime = Date.now();
   }
 
+  async function requestWakeLock() {
+    if (!("wakeLock" in navigator)) return;
+    try {
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", () => { wakeLock = null; });
+    } catch (e) { /* not critical — screen may just dim normally */ }
+  }
+  function releaseWakeLock() {
+    if (wakeLock) {
+      wakeLock.release().catch(() => {});
+      wakeLock = null;
+    }
+  }
+
+  // Stop all sensor/render work while the tab is hidden (saves battery),
+  // and resume cleanly when it becomes visible again.
+  document.addEventListener("visibilitychange", () => {
+    if (!isCompassActive) return;
+    if (document.hidden) {
+      if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
+      if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+      if (orientationEventName) { window.removeEventListener(orientationEventName, onOrientation); orientationEventName = null; }
+      releaseWakeLock();
+    } else {
+      startWatchingPosition();
+      startWatchingOrientation();
+      if (rafId === null) rafId = requestAnimationFrame(renderLoop);
+      requestWakeLock();
+    }
+  });
+
   function startWatchingPosition() {
     if (!("geolocation" in navigator)) {
       showError("Geen GPS beschikbaar", "Dit apparaat of deze browser ondersteunt geen locatietoegang, die Pandvinder nodig heeft om Vindicat te vinden.");
@@ -835,12 +876,16 @@
     if (!startWatchingOrientation()) return;
 
     if (rafId === null) rafId = requestAnimationFrame(renderLoop);
+    isCompassActive = true;
+    requestWakeLock();
     showScreen("compass");
   }
 
   startBtn.addEventListener("click", requestPermissionsAndStart);
   retryBtn.addEventListener("click", () => {
     startSession++;
+    isCompassActive = false;
+    releaseWakeLock();
     if (watchId !== null) navigator.geolocation.clearWatch(watchId);
     if (orientationEventName) window.removeEventListener(orientationEventName, onOrientation);
     orientationEventName = null;
