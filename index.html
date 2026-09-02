@@ -438,11 +438,11 @@
     return `${(m / 1000).toFixed(2)} km`;
   }
 
-  // Vindicat was founded in 1815 — show distance as multiples of 1815 km too.
+  // Vindicat was founded in 1815 — show distance as multiples of 18.15 km too.
   function formatMultiple(m) {
-    const multiples = (m / 1000) / 1815;
+    const multiples = (m / 1000) / 18.15;
     const rounded = Math.round(multiples * 2) / 2;
-    return `${rounded.toLocaleString("nl-NL")}× 1815 km`;
+    return `${rounded.toLocaleString("nl-NL")}× 18,15 km`;
   }
 
   function pad2(n) { return String(n).padStart(2, "0"); }
