@@ -230,6 +230,51 @@
     letter-spacing: 0.01em;
   }
 
+  .witness-stats {
+    color: var(--muted);
+    font-size: 0.78rem;
+    margin-top: 8px;
+  }
+
+  /* --- Achievement pop-up (18:15 streak milestones) --- */
+  .achievement-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 60;
+    cursor: pointer;
+    padding: 24px;
+  }
+  .achievement-card {
+    background: var(--bg);
+    color: var(--fg);
+    border-radius: 20px;
+    padding: 28px 32px;
+    text-align: center;
+    max-width: 300px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    animation: pv-achievement-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    cursor: default;
+  }
+  @keyframes pv-achievement-pop {
+    0% { transform: scale(0.7); opacity: 0; }
+    60% { transform: scale(1.06); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .achievement-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+  .achievement-sub {
+    font-size: 0.95rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
   .error-icon { font-size: 2.4rem; margin-bottom: 12px; }
 
   [hidden] { display: none !important; }
@@ -366,6 +411,7 @@
         <div class="countdown-time" id="countdown-time"></div>
         <div class="countdown-caption">tot 18:15</div>
       </div>
+      <div class="witness-stats" id="witness-stats" hidden></div>
       <div class="alignment-badge" id="alignment-badge" hidden>✓ Je kijkt recht op het 8e MF</div>
       <div class="warning" id="warning"></div>
     </div>
@@ -379,6 +425,14 @@
     <button class="primary" id="retry-btn">Opnieuw proberen</button>
   </div>
 
+</div>
+
+<!-- Achievement pop-up for 18:15 streak milestones -->
+<div class="achievement-overlay" id="achievement-overlay" hidden>
+  <div class="achievement-card">
+    <div class="achievement-title" id="achievement-title"></div>
+    <div class="achievement-sub" id="achievement-sub"></div>
+  </div>
 </div>
 
 <!-- Ads-related UI: entirely hidden unless ADS_ENABLED is true (config.js) -->
@@ -453,6 +507,10 @@
   const dial = document.getElementById("dial");
   const alignmentGlow = document.getElementById("alignment-glow");
   const alignmentBadge = document.getElementById("alignment-badge");
+  const witnessStatsEl = document.getElementById("witness-stats");
+  const achievementOverlay = document.getElementById("achievement-overlay");
+  const achievementTitleEl = document.getElementById("achievement-title");
+  const achievementSubEl = document.getElementById("achievement-sub");
   const adsFooter = document.getElementById("ads-footer");
   const consentBanner = document.getElementById("consent-banner");
   const cookieSettingsBtn = document.getElementById("cookie-settings-btn");
@@ -576,6 +634,82 @@
     setTimeout(() => container.remove(), 4200);
   }
 
+  let achievementTimer = null;
+  function hideAchievement() {
+    achievementOverlay.hidden = true;
+    if (achievementTimer) { clearTimeout(achievementTimer); achievementTimer = null; }
+  }
+  function showAchievement(title, sub) {
+    achievementTitleEl.textContent = title;
+    achievementSubEl.textContent = sub;
+    achievementOverlay.hidden = false;
+    fireConfetti();
+    if (achievementTimer) clearTimeout(achievementTimer);
+    achievementTimer = setTimeout(hideAchievement, 4000);
+  }
+  achievementOverlay.addEventListener("click", hideAchievement);
+
+  // --- 18:15 witness tracking: how many days, and how many in a row ---
+  const WITNESS_KEY = "pv-witness";
+  function dateStr(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }
+  function loadWitness() {
+    try {
+      const raw = localStorage.getItem(WITNESS_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) { /* ignore */ }
+    return { total: 0, streak: 0, lastDate: null, bestStreak: 0, lastCelebratedStreak: 0 };
+  }
+  function saveWitness(state) {
+    try { localStorage.setItem(WITNESS_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+  }
+  function isMilestone(streak) {
+    return streak === 3 || streak === 27 || streak % 5 === 0;
+  }
+  function milestoneMessage(streak) {
+    if (streak === 27) {
+      return { title: "27 op rij!", sub: "Dit is geen toeval meer. Dit is toewijding aan het 8e MF." };
+    }
+    if (streak === 3) {
+      return { title: "3 op rij!", sub: "Je bent warm." };
+    }
+    return { title: `${streak} op rij!`, sub: "Knap volgehouden." };
+  }
+  function updateWitnessStatsDisplay(state) {
+    if (!state || !state.total) {
+      witnessStatsEl.hidden = true;
+      return;
+    }
+    witnessStatsEl.hidden = false;
+    const dagen = state.streak === 1 ? "dag" : "dagen";
+    witnessStatsEl.textContent = `${state.streak} ${dagen} op rij · ${state.total}× totaal`;
+  }
+  function recordWitness() {
+    const today = new Date();
+    const todayKey = dateStr(today);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayKey = dateStr(yesterday);
+
+    const state = loadWitness();
+    if (state.lastDate === todayKey) return; // already recorded today
+
+    state.streak = state.lastDate === yesterdayKey ? state.streak + 1 : 1;
+    state.total += 1;
+    state.lastDate = todayKey;
+    state.bestStreak = Math.max(state.bestStreak || 0, state.streak);
+    saveWitness(state);
+    updateWitnessStatsDisplay(state);
+
+    if (isMilestone(state.streak) && state.streak > (state.lastCelebratedStreak || 0)) {
+      state.lastCelebratedStreak = state.streak;
+      saveWitness(state);
+      const msg = milestoneMessage(state.streak);
+      showAchievement(msg.title, msg.sub);
+    }
+  }
+
   // Fires exactly once per day, the moment the countdown hits 18:15.
   let confettiFiredThisCycle = false;
   function updateCountdown() {
@@ -595,6 +729,7 @@
       if (!confettiFiredThisCycle) {
         confettiFiredThisCycle = true;
         fireConfetti();
+        recordWitness();
       }
     } else {
       confettiFiredThisCycle = false;
@@ -963,6 +1098,7 @@
 
   applyTheme();
   initAds();
+  updateWitnessStatsDisplay(loadWitness());
 })();
 </script>
 </body>
