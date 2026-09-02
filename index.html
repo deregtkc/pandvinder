@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -191,6 +191,11 @@
     font-size: 0.85rem;
     margin-top: 4px;
   }
+  .meta {
+    color: var(--muted);
+    font-size: 0.78rem;
+    margin-top: 3px;
+  }
   .warning {
     color: var(--accent);
     font-size: 0.8rem;
@@ -207,14 +212,14 @@
   <!-- Start screen -->
   <div class="screen active" id="start-screen">
     <h1>Pandvinder</h1>
-    <p class="sub">Points the way to Vindicat atque Polit, wherever you are in Groningen. Needs your location and compass.</p>
+    <p class="sub">Wijst de weg naar Vindicat atque Polit, waar je ook bent in Groningen. Heeft je locatie en kompas nodig.</p>
     <button class="primary" id="start-btn">Start</button>
   </div>
 
   <!-- Compass screen -->
   <div class="screen" id="compass-screen">
     <div class="top-row">
-      <button id="theme-btn">Theme</button>
+      <button id="theme-btn">Thema</button>
     </div>
 
     <div class="dial-wrap" id="dial-wrap">
@@ -225,7 +230,9 @@
 
     <div class="info">
       <div class="distance" id="distance">-- m</div>
-      <div class="label">to Vindicat atque Polit</div>
+      <div class="label">naar Vindicat atque Polit</div>
+      <div class="meta" id="multiple"></div>
+      <div class="meta" id="countdown"></div>
       <div class="warning" id="warning"></div>
     </div>
   </div>
@@ -233,9 +240,9 @@
   <!-- Error screen -->
   <div class="screen" id="error-screen">
     <div class="error-icon">⚠</div>
-    <h1 id="error-title">Something went wrong</h1>
-    <p class="sub" id="error-text">Details go here.</p>
-    <button class="primary" id="retry-btn">Try again</button>
+    <h1 id="error-title">Er ging iets mis</h1>
+    <p class="sub" id="error-text">Details volgen hier.</p>
+    <button class="primary" id="retry-btn">Opnieuw proberen</button>
   </div>
 
 </div>
@@ -260,31 +267,67 @@
   const BOTTLE_NEEDLE = `
     <defs>
       <linearGradient id="pv-glass" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0%" stop-color="#12854a"/>
-        <stop offset="45%" stop-color="#0a6a3b"/>
-        <stop offset="100%" stop-color="#074f2c"/>
+        <stop offset="0%" stop-color="#063d22"/>
+        <stop offset="14%" stop-color="#26a862"/>
+        <stop offset="32%" stop-color="#0a6a3b"/>
+        <stop offset="68%" stop-color="#0a6a3b"/>
+        <stop offset="88%" stop-color="#063d22"/>
+        <stop offset="100%" stop-color="#04220f"/>
       </linearGradient>
       <linearGradient id="pv-cap" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#e6c65a"/>
-        <stop offset="100%" stop-color="#b8912a"/>
+        <stop offset="0%" stop-color="#f2dc84"/>
+        <stop offset="55%" stop-color="#d4ac3e"/>
+        <stop offset="100%" stop-color="#9c7a22"/>
+      </linearGradient>
+      <linearGradient id="pv-foil" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#9c7a22"/>
+        <stop offset="50%" stop-color="#f2dc84"/>
+        <stop offset="100%" stop-color="#9c7a22"/>
       </linearGradient>
     </defs>
-    <ellipse cx="50" cy="93" rx="17" ry="3" fill="#000000" opacity="0.15"/>
-    <path d="M31,52 Q29,73 34,90 Q40,94 50,94 Q60,94 66,90 Q71,73 69,52 Z" fill="url(#pv-glass)"/>
-    <path d="M45,32 L55,32 L67,52 L33,52 Z" fill="url(#pv-glass)"/>
-    <rect x="45" y="11" width="10" height="22" fill="url(#pv-glass)"/>
-    <rect x="42" y="3" width="16" height="9" rx="2" fill="url(#pv-cap)"/>
-    <g opacity="0.55" stroke="#8a6a1c" stroke-width="0.6">
-      <line x1="44.5" y1="3" x2="44.5" y2="12"/>
-      <line x1="47.5" y1="3" x2="47.5" y2="12"/>
-      <line x1="50.5" y1="3" x2="50.5" y2="12"/>
-      <line x1="53.5" y1="3" x2="53.5" y2="12"/>
-      <line x1="56.5" y1="3" x2="56.5" y2="12"/>
+
+    <ellipse cx="50" cy="93" rx="18" ry="3" fill="#000000" opacity="0.16"/>
+
+    <path d="M45,11 L55,11 L55,27
+             C55,27 63,29 66,39
+             C69,49 70,54 70,59
+             L70,81
+             C70,87 63,91 50,91
+             C37,91 30,87 30,81
+             L30,59
+             C30,54 31,49 34,39
+             C37,29 45,27 45,27 Z"
+          fill="url(#pv-glass)"/>
+
+    <rect x="43" y="15" width="14" height="3" fill="url(#pv-foil)" opacity="0.9"/>
+
+    <path d="M45,11 L55,11 L55,27 C55,27 51,26.2 50,26.2 C49,26.2 45,27 45,27 Z"
+          fill="#ffffff" opacity="0.18"/>
+    <path d="M33,42 C31,55 31,68 32,80" stroke="#ffffff" stroke-width="2.4"
+          opacity="0.16" fill="none" stroke-linecap="round"/>
+
+    <ellipse cx="50" cy="4.6" rx="8.4" ry="2.6" fill="url(#pv-cap)"/>
+    <rect x="41.6" y="4.6" width="16.8" height="8" fill="url(#pv-cap)"/>
+    <path d="M41.6,12.6 Q50,15.2 58.4,12.6 L58.4,12.6 Q50,14 41.6,12.6 Z" fill="#9c7a22" opacity="0.6"/>
+    <g opacity="0.5" stroke="#7a5f1a" stroke-width="0.55">
+      <line x1="44" y1="4.9" x2="44" y2="13"/>
+      <line x1="47" y1="4.6" x2="47" y2="13.6"/>
+      <line x1="50" y1="4.5" x2="50" y2="13.8"/>
+      <line x1="53" y1="4.6" x2="53" y2="13.6"/>
+      <line x1="56" y1="4.9" x2="56" y2="13"/>
     </g>
-    <path d="M35,35 Q34,58 36,88" stroke="#ffffff" stroke-width="2.2" opacity="0.22" fill="none" stroke-linecap="round"/>
-    <rect x="36" y="58" width="28" height="22" rx="2" fill="#f6f6f0" stroke="#0a6a3b" stroke-width="0.8"/>
-    <polygon points="50,61 51.8,65.6 56.7,65.9 52.9,69.1 54.2,73.9 50,71.1 45.8,73.9 47.1,69.1 43.3,65.9 48.2,65.6" fill="#d0102a"/>
-    <rect x="39" y="76" width="22" height="1.3" rx="0.6" fill="#0a6a3b" opacity="0.55"/>
+    <ellipse cx="47" cy="4" rx="2.6" ry="0.9" fill="#ffffff" opacity="0.5"/>
+
+    <rect x="35" y="48" width="30" height="24" rx="2.5" fill="#f7f6ef" stroke="#0a6a3b" stroke-width="0.9"/>
+    <rect x="37.5" y="50.5" width="25" height="19" rx="1.4" fill="none" stroke="#0a6a3b" stroke-width="0.5" opacity="0.5"/>
+    <polygon points="50,53.5 52,58.5 57.3,58.8 53.1,62.2 54.6,67.4 50,64.3 45.4,67.4 46.9,62.2 42.7,58.8 48,58.5"
+             fill="#d0102a"/>
+    <rect x="41" y="70" width="18" height="1.1" rx="0.5" fill="#0a6a3b" opacity="0.55"/>
+
+    <circle cx="38" cy="34" r="1.1" fill="#ffffff" opacity="0.35"/>
+    <circle cx="63" cy="76" r="0.9" fill="#ffffff" opacity="0.3"/>
+    <circle cx="59" cy="45" r="0.7" fill="#ffffff" opacity="0.3"/>
+    <path d="M38,36 L37,40" stroke="#ffffff" stroke-width="0.8" opacity="0.3" stroke-linecap="round"/>
   `;
   const NEEDLE_BY_THEME = { heineken: BOTTLE_NEEDLE };
   function buildNeedle() {
@@ -302,6 +345,8 @@
   const retryBtn = document.getElementById("retry-btn");
   const needle = document.getElementById("needle-svg");
   const distanceEl = document.getElementById("distance");
+  const multipleEl = document.getElementById("multiple");
+  const countdownEl = document.getElementById("countdown");
   const warningEl = document.getElementById("warning");
   const errorTitle = document.getElementById("error-title");
   const errorText = document.getElementById("error-text");
@@ -393,6 +438,30 @@
     return `${(m / 1000).toFixed(2)} km`;
   }
 
+  // Vindicat was founded in 1815 — show distance as multiples of 1815 km too.
+  function formatMultiple(m) {
+    const multiples = (m / 1000) / 1815;
+    const rounded = Math.round(multiples * 2) / 2;
+    return `${rounded.toLocaleString("nl-NL")}× 1815 km`;
+  }
+
+  function pad2(n) { return String(n).padStart(2, "0"); }
+  function updateCountdown() {
+    const now = new Date();
+    const target = new Date(now);
+    target.setHours(18, 15, 0, 0);
+    const resetPoint = new Date(now);
+    resetPoint.setHours(18, 16, 0, 0);
+    if (now >= resetPoint) target.setDate(target.getDate() + 1);
+    const totalSec = Math.floor(Math.max(0, target.getTime() - now.getTime()) / 1000);
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    countdownEl.textContent = `${pad2(h)}:${pad2(m)}:${pad2(s)} tot 18:15`;
+  }
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+
   // Angle helper: shortest signed difference from a to b, in (-180, 180].
   function angleDiff(a, b) {
     return ((b - a + 540) % 360) - 180;
@@ -406,6 +475,16 @@
   let smoothedHeading = null;
   let smoothedPos = null;
   let displayedRotation = 0;
+
+  // Some browsers (notably Firefox on Android) never report a true,
+  // north-referenced heading — only orientation relative to whatever way
+  // the phone faced when the sensor started. We detect that case and
+  // auto-calibrate it against GPS course-over-ground while the user walks,
+  // instead of trusting it as true north (which would silently point wrong).
+  let lastRawRelative = null;
+  let lastRawRelativeTime = 0;
+  let calibrationOffset = null;
+  let compassMode = "unknown"; // "absolute" | "calibrated-relative" | "uncalibrated"
 
   function getScreenAngle() {
     if (screen.orientation && typeof screen.orientation.angle === "number") {
@@ -429,12 +508,18 @@
     const textDue = now - lastTextUpdate > 250;
 
     if (textDue) {
-      distanceEl.textContent = formatDistance(distanceMeters(currentPos, TARGET));
+      const distM = distanceMeters(currentPos, TARGET);
+      distanceEl.textContent = formatDistance(distM);
+      multipleEl.textContent = formatMultiple(distM);
       lastTextUpdate = now;
     }
 
     if (currentHeading === null) {
-      if (textDue) warningEl.textContent = "Waiting for compass…";
+      if (textDue) {
+        warningEl.textContent = compassMode === "uncalibrated"
+          ? "Kompas kalibreren — loop een paar stappen met je telefoon in de hand."
+          : "Wachten op kompas…";
+      }
       return;
     }
 
@@ -446,9 +531,9 @@
     const staleGPS = now - lastFixTime > 15000;
     const staleOri = now - lastOrientationTime > 3000;
     if (staleOri) {
-      warningEl.textContent = "Compass signal lost — move your phone in a figure-8 to recalibrate.";
+      warningEl.textContent = "Kompassignaal verloren — beweeg je telefoon in een 8-vorm om opnieuw te kalibreren.";
     } else if (staleGPS) {
-      warningEl.textContent = "GPS signal weak — location may be outdated.";
+      warningEl.textContent = "Zwak GPS-signaal — locatie kan verouderd zijn.";
     } else {
       warningEl.textContent = "";
     }
@@ -474,36 +559,77 @@
     }
     currentPos = smoothedPos;
     lastFixTime = Date.now();
+
+    // Auto-calibrate a relative-only orientation reading (e.g. Firefox on
+    // Android, which never gives a true north-referenced heading) against
+    // the direction of actual travel, reported by the GPS itself.
+    const gpsHeading = pos.coords.heading;
+    const speed = pos.coords.speed;
+    const movingEnough = typeof speed !== "number" || Number.isNaN(speed) || speed > 0.6;
+    const hasFreshRelative = lastRawRelative !== null && Date.now() - lastRawRelativeTime < 2000;
+    if (typeof gpsHeading === "number" && !Number.isNaN(gpsHeading) && movingEnough && hasFreshRelative) {
+      const newOffset = (gpsHeading - lastRawRelative + 360) % 360;
+      calibrationOffset = calibrationOffset === null ? newOffset : smoothAngle(calibrationOffset, newOffset, 0.2);
+    }
   }
 
   function onPositionError(err) {
-    showError("Location unavailable", "Pandvinder couldn't access your location. Please check that location services are enabled and permission is granted, then try again.");
+    if (err && err.code === err.PERMISSION_DENIED) {
+      showError("Locatie niet beschikbaar", "Pandvinder kon je locatie niet gebruiken. Controleer of locatievoorzieningen zijn ingeschakeld en toestemming is verleend, en probeer het opnieuw.");
+    } else {
+      // Transient (timeout / temporarily unavailable, e.g. indoors) — keep watching.
+      warningEl.textContent = "Wachten op GPS-signaal…";
+    }
   }
 
   function onOrientation(evt) {
-    let heading = null;
-    if (typeof evt.webkitCompassHeading === "number") {
-      // iOS Safari: already a true compass heading
-      heading = evt.webkitCompassHeading;
+    const screenAngle = getScreenAngle();
+    let trueHeading = null;
+    let relative = null;
+
+    if (typeof evt.webkitCompassHeading === "number" && !Number.isNaN(evt.webkitCompassHeading)) {
+      // iOS Safari: already a true, north-referenced compass heading.
+      trueHeading = evt.webkitCompassHeading;
     } else if (evt.alpha !== null) {
-      // Compensate for screen rotation so it stays correct in landscape too.
-      heading = (360 - evt.alpha + getScreenAngle() + 360) % 360;
+      const raw = (360 - evt.alpha + screenAngle + 360) % 360;
+      if (evt.absolute === true) {
+        trueHeading = raw;
+      } else {
+        // No north reference (typical on Firefox/Android) — needs calibration.
+        relative = raw;
+      }
     }
-    if (heading === null || Number.isNaN(heading)) return;
-    smoothedHeading = smoothAngle(smoothedHeading, (heading + 360) % 360, 0.25);
-    currentHeading = smoothedHeading;
+
+    if (trueHeading !== null) {
+      compassMode = "absolute";
+      smoothedHeading = smoothAngle(smoothedHeading, (trueHeading + 360) % 360, 0.25);
+      currentHeading = smoothedHeading;
+    } else if (relative !== null) {
+      lastRawRelative = relative;
+      lastRawRelativeTime = Date.now();
+      if (calibrationOffset !== null) {
+        compassMode = "calibrated-relative";
+        const estimate = (relative + calibrationOffset + 360) % 360;
+        smoothedHeading = smoothAngle(smoothedHeading, estimate, 0.25);
+        currentHeading = smoothedHeading;
+      } else {
+        compassMode = "uncalibrated";
+      }
+    } else {
+      return;
+    }
     lastOrientationTime = Date.now();
   }
 
   function startWatchingPosition() {
     if (!("geolocation" in navigator)) {
-      showError("No GPS available", "This device or browser doesn't support location access, which Pandvinder needs to find Vindicat.");
+      showError("Geen GPS beschikbaar", "Dit apparaat of deze browser ondersteunt geen locatietoegang, die Pandvinder nodig heeft om Vindicat te vinden.");
       return false;
     }
     watchId = navigator.geolocation.watchPosition(onPosition, onPositionError, {
       enableHighAccuracy: true,
       maximumAge: 5000,
-      timeout: 20000,
+      timeout: 27000,
     });
     return true;
   }
@@ -511,7 +637,7 @@
   function startWatchingOrientation() {
     const hasOrientation = "DeviceOrientationEvent" in window;
     if (!hasOrientation) {
-      showError("No compass available", "This device doesn't appear to have an orientation sensor, which Pandvinder needs to point the way.");
+      showError("Geen kompas beschikbaar", "Dit apparaat lijkt geen oriëntatiesensor te hebben, die Pandvinder nodig heeft om de weg te wijzen.");
       return false;
     }
     if (orientationEventName) {
@@ -525,8 +651,8 @@
     setTimeout(() => {
       if (session === startSession && lastOrientationTime === 0) {
         showError(
-          "Compass not responding",
-          "Pandvinder isn't receiving compass data. Make sure motion & orientation access is allowed for this site, then try again."
+          "Kompas reageert niet",
+          "Pandvinder ontvangt geen kompasgegevens. Gebruik je Firefox? Controleer dan Instellingen → Sitemachtigingen → bewegings- en lichtsensoren, of probeer het in Chrome. Zorg er anders voor dat bewegings- en oriëntatietoegang voor deze site is toegestaan, en probeer het opnieuw."
         );
       }
     }, 6000);
@@ -542,12 +668,12 @@
           typeof DeviceOrientationEvent.requestPermission === "function") {
         const state = await DeviceOrientationEvent.requestPermission();
         if (state !== "granted") {
-          showError("Compass permission denied", "Pandvinder needs motion & orientation access to work as a compass. Please allow it in your browser settings and try again.");
+          showError("Kompastoestemming geweigerd", "Pandvinder heeft toegang tot beweging en oriëntatie nodig om als kompas te werken. Sta dit toe in je browserinstellingen en probeer het opnieuw.");
           return;
         }
       }
     } catch (e) {
-      showError("Compass permission denied", "Pandvinder needs motion & orientation access to work as a compass. Please allow it in your browser settings and try again.");
+      showError("Kompastoestemming geweigerd", "Pandvinder heeft toegang tot beweging en oriëntatie nodig om als kompas te werken. Sta dit toe in je browserinstellingen en probeer het opnieuw.");
       return;
     }
 
@@ -575,6 +701,10 @@
     lastFixTime = 0;
     lastOrientationTime = 0;
     displayedRotation = 0;
+    lastRawRelative = null;
+    lastRawRelativeTime = 0;
+    calibrationOffset = null;
+    compassMode = "unknown";
     showScreen("start");
   });
 
