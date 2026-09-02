@@ -218,6 +218,18 @@
     margin-top: 6px;
   }
 
+  .alignment-badge {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 6px 16px;
+    border-radius: 999px;
+    background: rgba(22, 163, 74, 0.15);
+    color: #16a34a;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.01em;
+  }
+
   .error-icon { font-size: 2.4rem; margin-bottom: 12px; }
 
   [hidden] { display: none !important; }
@@ -354,6 +366,7 @@
         <div class="countdown-time" id="countdown-time"></div>
         <div class="countdown-caption">tot 18:15</div>
       </div>
+      <div class="alignment-badge" id="alignment-badge" hidden>✓ Je kijkt recht op het 8e MF</div>
       <div class="warning" id="warning"></div>
     </div>
   </div>
@@ -432,6 +445,7 @@
   const errorText = document.getElementById("error-text");
   const dial = document.getElementById("dial");
   const alignmentGlow = document.getElementById("alignment-glow");
+  const alignmentBadge = document.getElementById("alignment-badge");
   const adsFooter = document.getElementById("ads-footer");
   const consentBanner = document.getElementById("consent-banner");
   const cookieSettingsBtn = document.getElementById("cookie-settings-btn");
@@ -630,6 +644,7 @@
     alignmentGlow.style.opacity = opacity.toFixed(2);
 
     const aligned = deviation <= ALIGNMENT_LOCK_DEG;
+    alignmentBadge.hidden = !aligned;
     if (aligned && !wasAligned && typeof navigator.vibrate === "function") {
       navigator.vibrate(60);
     }
@@ -657,6 +672,7 @@
           : "Wachten op kompas…";
       }
       alignmentGlow.style.opacity = "0";
+      alignmentBadge.hidden = true;
       return;
     }
 
@@ -845,6 +861,7 @@
     compassMode = "unknown";
     wasAligned = false;
     alignmentGlow.style.opacity = "0";
+    alignmentBadge.hidden = true;
     showScreen("start");
   });
 
