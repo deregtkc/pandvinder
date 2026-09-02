@@ -41,6 +41,36 @@
   }
   [data-theme="mutuafides"] .center-dot { display: none; }
 
+  /* "Kater" (hangover): everything washed out and a bit blurry. */
+  [data-theme="kater"] {
+    --bg: #c9c9c9;
+    --fg: #4a4a4a;
+    --muted: #8f8f8f;
+    --accent: #6e6e6e;
+    --needle: #555555;
+    --dial: #b0b0b0;
+  }
+  [data-theme="kater"] #needle-svg {
+    filter: grayscale(1) blur(0.8px) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.15));
+  }
+
+  /* Disco: the whole app slowly cycles through the rainbow. */
+  [data-theme="disco"] {
+    --bg: #0a0a0f;
+    --fg: #ffffff;
+    --muted: #cfa6ff;
+    --accent: #ff2fd0;
+    --needle: #35e0ff;
+    --dial: #1c1c2e;
+  }
+  [data-theme="disco"] #app {
+    animation: pv-disco-hue 4s linear infinite;
+  }
+  @keyframes pv-disco-hue {
+    from { filter: hue-rotate(0deg); }
+    to { filter: hue-rotate(360deg); }
+  }
+
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
     margin: 0;
@@ -107,22 +137,7 @@
   button.primary:active { transform: scale(0.96); }
 
   /* --- Compass screen --- */
-  #compass-screen { justify-content: space-between; padding: 40px 24px; }
-
-  .top-row {
-    width: 100%;
-    display: flex;
-    justify-content: flex-end;
-  }
-  #theme-btn {
-    background: none;
-    border: 1px solid var(--muted);
-    color: var(--fg);
-    border-radius: 999px;
-    padding: 6px 14px;
-    font-size: 0.8rem;
-    cursor: pointer;
-  }
+  #compass-screen { justify-content: center; gap: 40px; padding: 40px 24px; }
 
   .dial-wrap {
     position: relative;
@@ -170,6 +185,7 @@
     transition: transform 0.12s linear;
     filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
     will-change: transform;
+    cursor: pointer;
   }
 
   .center-dot {
@@ -412,10 +428,6 @@
 
   <!-- Compass screen -->
   <div class="screen" id="compass-screen">
-    <div class="top-row">
-      <button id="theme-btn">Thema</button>
-    </div>
-
     <div class="dial-wrap" id="dial-wrap">
       <div class="dial" id="dial"></div>
       <svg id="needle-svg" viewBox="0 0 100 100"></svg>
@@ -480,7 +492,7 @@
   // Vindicat atque Polit (Mutua Fides), Grote Markt 27, Groningen
   const TARGET = { lat: 53.218611, lon: 6.568331 };
 
-  const THEMES = ["mutuafides", "light", "dark", "classic"];
+  const THEMES = ["mutuafides", "light", "dark", "classic", "kater", "disco"];
   const THEME_KEY = "pv-theme";
   function loadStoredThemeIndex() {
     try {
@@ -513,7 +525,6 @@
     error: document.getElementById("error-screen"),
   };
   const startBtn = document.getElementById("start-btn");
-  const themeBtn = document.getElementById("theme-btn");
   const retryBtn = document.getElementById("retry-btn");
   const needle = document.getElementById("needle-svg");
   const distanceEl = document.getElementById("distance");
@@ -562,7 +573,7 @@
     buildNeedle();
     try { localStorage.setItem(THEME_KEY, THEMES[themeIndex]); } catch (e) { /* ignore */ }
   }
-  themeBtn.addEventListener("click", () => {
+  needle.addEventListener("click", () => {
     themeIndex = (themeIndex + 1) % THEMES.length;
     applyTheme();
   });
