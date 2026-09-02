@@ -222,6 +222,39 @@
 
   [hidden] { display: none !important; }
 
+  /* --- Orientation nudge: soft green wash that strengthens as you face the target --- */
+  #alignment-glow {
+    position: fixed;
+    inset: 0;
+    background: #16a34a;
+    opacity: 0;
+    transition: opacity 0.2s ease-out;
+    pointer-events: none;
+  }
+
+  /* --- Confetti pop at 18:15 --- */
+  .confetti-container {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 50;
+  }
+  .confetti-piece {
+    position: absolute;
+    top: -12px;
+    width: 8px;
+    height: 14px;
+    opacity: 0.95;
+    animation-name: pv-confetti-fall;
+    animation-timing-function: ease-in;
+    animation-fill-mode: forwards;
+  }
+  @keyframes pv-confetti-fall {
+    0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+    100% { transform: translate(var(--drift), 110vh) rotate(var(--rot)); opacity: 0.85; }
+  }
+
   /* --- Ads: footer links + consent banner (all gated by ADS_ENABLED) --- */
   .ads-footer {
     position: fixed;
@@ -291,6 +324,7 @@
 </style>
 </head>
 <body>
+<div id="alignment-glow"></div>
 <div id="app">
 
   <!-- Start screen -->
@@ -457,6 +491,7 @@
   const errorTitle = document.getElementById("error-title");
   const errorText = document.getElementById("error-text");
   const dial = document.getElementById("dial");
+  const alignmentGlow = document.getElementById("alignment-glow");
   const adsFooter = document.getElementById("ads-footer");
   const consentBanner = document.getElementById("consent-banner");
   const cookieSettingsBtn = document.getElementById("cookie-settings-btn");
@@ -557,6 +592,28 @@
   }
 
   function pad2(n) { return String(n).padStart(2, "0"); }
+
+  const CONFETTI_COLORS = ["#d0102a", "#0a6a3b", "#e6c65a", "#f7f6ef", "#12854a"];
+  function fireConfetti() {
+    const container = document.createElement("div");
+    container.className = "confetti-container";
+    document.body.appendChild(container);
+    for (let i = 0; i < 60; i++) {
+      const piece = document.createElement("div");
+      piece.className = "confetti-piece";
+      piece.style.left = `${Math.random() * 100}%`;
+      piece.style.background = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
+      piece.style.animationDelay = `${Math.random() * 0.6}s`;
+      piece.style.animationDuration = `${2.2 + Math.random() * 1.4}s`;
+      piece.style.setProperty("--drift", `${(Math.random() * 2 - 1) * 120}px`);
+      piece.style.setProperty("--rot", `${(Math.random() * 2 - 1) * 720}deg`);
+      container.appendChild(piece);
+    }
+    setTimeout(() => container.remove(), 4200);
+  }
+
+  // Fires exactly once per day, the moment the countdown hits 18:15.
+  let confettiFiredThisCycle = false;
   function updateCountdown() {
     const now = new Date();
     const target = new Date(now);
@@ -569,6 +626,15 @@
     const m = Math.floor((totalSec % 3600) / 60);
     const s = totalSec % 60;
     countdownEl.textContent = `${pad2(h)}:${pad2(m)}:${pad2(s)}`;
+
+    if (totalSec === 0) {
+      if (!confettiFiredThisCycle) {
+        confettiFiredThisCycle = true;
+        fireConfetti();
+      }
+    } else {
+      confettiFiredThisCycle = false;
+    }
   }
   updateCountdown();
   setInterval(updateCountdown, 1000);
@@ -611,6 +677,25 @@
     needle.style.transform = `rotate(${displayedRotation}deg)`;
   }
 
+  // Nudge the user toward facing Vindicat: the screen washes green as the
+  // needle's deviation from "straight ahead" shrinks, with a short buzz
+  // the moment you swing into a tight lock-on.
+  const ALIGNMENT_THRESHOLD_DEG = 45;
+  const ALIGNMENT_LOCK_DEG = 8;
+  const ALIGNMENT_MAX_OPACITY = 0.4;
+  let wasAligned = false;
+  function updateAlignmentGlow(relativeDeg) {
+    const deviation = Math.abs(angleDiff(0, relativeDeg));
+    const opacity = Math.max(0, 1 - deviation / ALIGNMENT_THRESHOLD_DEG) * ALIGNMENT_MAX_OPACITY;
+    alignmentGlow.style.opacity = opacity.toFixed(2);
+
+    const aligned = deviation <= ALIGNMENT_LOCK_DEG;
+    if (aligned && !wasAligned && typeof navigator.vibrate === "function") {
+      navigator.vibrate(60);
+    }
+    wasAligned = aligned;
+  }
+
   let lastTextUpdate = 0;
   function update() {
     if (!currentPos) return;
@@ -631,12 +716,14 @@
           ? "Kompas kalibreren — loop een paar stappen met je telefoon in de hand."
           : "Wachten op kompas…";
       }
+      alignmentGlow.style.opacity = "0";
       return;
     }
 
     const bearing = bearingTo(currentPos, TARGET);
     const relative = (bearing - currentHeading + 360) % 360;
     setNeedleRotation(relative);
+    updateAlignmentGlow(relative);
 
     if (!textDue) return;
     const staleGPS = now - lastFixTime > 15000;
@@ -816,6 +903,8 @@
     lastRawRelativeTime = 0;
     calibrationOffset = null;
     compassMode = "unknown";
+    wasAligned = false;
+    alignmentGlow.style.opacity = "0";
     showScreen("start");
   });
 
