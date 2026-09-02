@@ -7,4 +7,4 @@
 const ADS_ENABLED = false;
 
 // From your AdSense dashboard, looks like "ca-pub-1234567890123456".
-const ADSENSE_PUBLISHER_ID = "";
+const ADSENSE_PUBLISHER_ID = "ca-pub-1231365130153877";
