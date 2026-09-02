@@ -29,26 +29,38 @@
     --needle: #2b2115;
     --dial: #d9cba3;
   }
+  [data-theme="heineken"] {
+    --bg: #f2ede1;
+    --fg: #0a3d24;
+    --muted: #6c7a6f;
+    --accent: #d0102a;
+    --needle: #0a6a3b;
+    --dial: #e2e2e2;
+  }
+  [data-theme="heineken"] .center-dot { display: none; }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
     margin: 0;
     padding: 0;
     height: 100%;
+    overflow: hidden;
     background: var(--bg);
     color: var(--fg);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     overscroll-behavior: none;
+    touch-action: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
     user-select: none;
   }
   #app {
-    height: 100dvh;
-    width: 100vw;
+    position: fixed;
+    inset: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    position: relative;
     transition: background 0.3s, color 0.3s;
   }
 
@@ -155,6 +167,7 @@
     transform: rotate(0deg);
     transition: transform 0.12s linear;
     filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
+    will-change: transform;
   }
 
   .center-dot {
@@ -206,10 +219,7 @@
 
     <div class="dial-wrap" id="dial-wrap">
       <div class="dial" id="dial"></div>
-      <svg id="needle-svg" viewBox="0 0 100 100">
-        <polygon points="50,6 60,54 50,46 40,54" fill="var(--accent)"/>
-        <polygon points="50,94 60,54 50,62 40,54" fill="var(--needle)"/>
-      </svg>
+      <svg id="needle-svg" viewBox="0 0 100 100"></svg>
       <div class="center-dot"></div>
     </div>
 
@@ -237,8 +247,26 @@
   // Vindicat atque Polit (Mutua Fides), Grote Markt 27, Groningen
   const TARGET = { lat: 53.218611, lon: 6.568331 };
 
-  const THEMES = ["light", "dark", "classic"];
+  const THEMES = ["light", "dark", "classic", "heineken"];
   let themeIndex = 0;
+
+  const ARROW_NEEDLE = `
+    <polygon points="50,6 60,54 50,46 40,54" fill="var(--accent)"/>
+    <polygon points="50,94 60,54 50,62 40,54" fill="var(--needle)"/>
+  `;
+  // Stylized bottle, cap at the top of the viewBox — the "pointing" end.
+  const BOTTLE_NEEDLE = `
+    <rect x="43" y="3" width="14" height="9" rx="2" fill="#c9a227"/>
+    <rect x="45" y="12" width="10" height="21" fill="#0a6a3b"/>
+    <path d="M45,33 L55,33 L66,46 L34,46 Z" fill="#0a6a3b"/>
+    <rect x="30" y="46" width="40" height="46" rx="12" fill="#0a6a3b"/>
+    <rect x="35" y="59" width="30" height="21" rx="2" fill="#f6f6f0"/>
+    <polygon points="50,62 51.9,66.9 57,67.2 53,70.5 54.3,75.5 50,72.6 45.7,75.5 47,70.5 43,67.2 48.1,66.9" fill="#d0102a"/>
+  `;
+  const NEEDLE_BY_THEME = { heineken: BOTTLE_NEEDLE };
+  function buildNeedle() {
+    needle.innerHTML = NEEDLE_BY_THEME[THEMES[themeIndex]] || ARROW_NEEDLE;
+  }
 
   const app = document.getElementById("app");
   const screens = {
@@ -261,6 +289,9 @@
   let lastFixTime = 0;
   let lastOrientationTime = 0;
   let watchId = null;
+  let orientationEventName = null;
+  let rafId = null;
+  let startSession = 0;
 
   function showScreen(name) {
     Object.values(screens).forEach(s => s.classList.remove("active"));
@@ -275,6 +306,7 @@
 
   function applyTheme() {
     document.documentElement.setAttribute("data-theme", THEMES[themeIndex]);
+    buildNeedle();
   }
   themeBtn.addEventListener("click", () => {
     themeIndex = (themeIndex + 1) % THEMES.length;
@@ -338,22 +370,48 @@
     return `${(m / 1000).toFixed(2)} km`;
   }
 
+  // Angle helper: shortest signed difference from a to b, in (-180, 180].
+  function angleDiff(a, b) {
+    return ((b - a + 540) % 360) - 180;
+  }
+  // Exponential smoothing across the wraparound at 0/360.
+  function smoothAngle(prev, next, factor) {
+    if (prev === null) return next;
+    return (prev + angleDiff(prev, next) * factor + 360) % 360;
+  }
+
+  let smoothedHeading = null;
+  let smoothedPos = null;
   let displayedRotation = 0;
+
+  function getScreenAngle() {
+    if (screen.orientation && typeof screen.orientation.angle === "number") {
+      return screen.orientation.angle;
+    }
+    if (typeof window.orientation === "number") return window.orientation;
+    return 0;
+  }
+
   function setNeedleRotation(targetDeg) {
     // shortest-path rotation to avoid the needle spinning the long way around
-    let delta = ((targetDeg - displayedRotation + 540) % 360) - 180;
-    displayedRotation += delta;
+    displayedRotation += angleDiff(displayedRotation, targetDeg);
     needle.style.transform = `rotate(${displayedRotation}deg)`;
   }
 
+  let lastTextUpdate = 0;
   function update() {
     if (!currentPos) return;
 
-    const dist = distanceMeters(currentPos, TARGET);
-    distanceEl.textContent = formatDistance(dist);
+    const now = Date.now();
+    const textDue = now - lastTextUpdate > 250;
+
+    if (textDue) {
+      distanceEl.textContent = formatDistance(distanceMeters(currentPos, TARGET));
+      lastTextUpdate = now;
+    }
 
     if (currentHeading === null) {
-      warningEl.textContent = "Waiting for compass…";
+      if (textDue) warningEl.textContent = "Waiting for compass…";
       return;
     }
 
@@ -361,8 +419,9 @@
     const relative = (bearing - currentHeading + 360) % 360;
     setNeedleRotation(relative);
 
-    const staleGPS = Date.now() - lastFixTime > 15000;
-    const staleOri = Date.now() - lastOrientationTime > 3000;
+    if (!textDue) return;
+    const staleGPS = now - lastFixTime > 15000;
+    const staleOri = now - lastOrientationTime > 3000;
     if (staleOri) {
       warningEl.textContent = "Compass signal lost — move your phone in a figure-8 to recalibrate.";
     } else if (staleGPS) {
@@ -372,10 +431,26 @@
     }
   }
 
-  function onPosition(pos) {
-    currentPos = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-    lastFixTime = Date.now();
+  function renderLoop() {
     update();
+    rafId = requestAnimationFrame(renderLoop);
+  }
+
+  function onPosition(pos) {
+    const next = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+    if (smoothedPos && distanceMeters(smoothedPos, next) < 25) {
+      // Small GPS jitter: smooth it out instead of letting the bearing jump.
+      const f = 0.35;
+      smoothedPos = {
+        lat: smoothedPos.lat + (next.lat - smoothedPos.lat) * f,
+        lon: smoothedPos.lon + (next.lon - smoothedPos.lon) * f,
+      };
+    } else {
+      // First fix, or a real move: snap immediately.
+      smoothedPos = next;
+    }
+    currentPos = smoothedPos;
+    lastFixTime = Date.now();
   }
 
   function onPositionError(err) {
@@ -387,16 +462,14 @@
     if (typeof evt.webkitCompassHeading === "number") {
       // iOS Safari: already a true compass heading
       heading = evt.webkitCompassHeading;
-    } else if (evt.alpha !== null && evt.absolute === true) {
-      heading = 360 - evt.alpha;
     } else if (evt.alpha !== null) {
-      // Best effort on browsers without absolute orientation
-      heading = 360 - evt.alpha;
+      // Compensate for screen rotation so it stays correct in landscape too.
+      heading = (360 - evt.alpha + getScreenAngle() + 360) % 360;
     }
     if (heading === null || Number.isNaN(heading)) return;
-    currentHeading = (heading + 360) % 360;
+    smoothedHeading = smoothAngle(smoothedHeading, (heading + 360) % 360, 0.25);
+    currentHeading = smoothedHeading;
     lastOrientationTime = Date.now();
-    update();
   }
 
   function startWatchingPosition() {
@@ -418,12 +491,16 @@
       showError("No compass available", "This device doesn't appear to have an orientation sensor, which Pandvinder needs to point the way.");
       return false;
     }
-    const eventName = "ondeviceorientationabsolute" in window ? "deviceorientationabsolute" : "deviceorientation";
-    window.addEventListener(eventName, onOrientation);
+    if (orientationEventName) {
+      window.removeEventListener(orientationEventName, onOrientation);
+    }
+    orientationEventName = "ondeviceorientationabsolute" in window ? "deviceorientationabsolute" : "deviceorientation";
+    window.addEventListener(orientationEventName, onOrientation);
 
     // Watchdog: if no orientation event arrives after a few seconds, sensor is likely unavailable/denied.
+    const session = startSession;
     setTimeout(() => {
-      if (lastOrientationTime === 0) {
+      if (session === startSession && lastOrientationTime === 0) {
         showError(
           "Compass not responding",
           "Pandvinder isn't receiving compass data. Make sure motion & orientation access is allowed for this site, then try again."
@@ -434,6 +511,8 @@
   }
 
   async function requestPermissionsAndStart() {
+    startSession++;
+
     // iOS 13+ requires an explicit user-gesture permission request for orientation.
     try {
       if (typeof DeviceOrientationEvent !== "undefined" &&
@@ -452,18 +531,31 @@
     if (!startWatchingPosition()) return;
     if (!startWatchingOrientation()) return;
 
+    if (rafId === null) rafId = requestAnimationFrame(renderLoop);
     showScreen("compass");
   }
 
   startBtn.addEventListener("click", requestPermissionsAndStart);
   retryBtn.addEventListener("click", () => {
+    startSession++;
     if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    if (orientationEventName) window.removeEventListener(orientationEventName, onOrientation);
+    orientationEventName = null;
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
     currentPos = null;
+    smoothedPos = null;
     currentHeading = null;
+    smoothedHeading = null;
     lastFixTime = 0;
     lastOrientationTime = 0;
+    displayedRotation = 0;
     showScreen("start");
   });
+
+  document.addEventListener("touchmove", (e) => e.preventDefault(), { passive: false });
 
   applyTheme();
 })();
