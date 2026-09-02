@@ -247,7 +247,7 @@
   // Vindicat atque Polit (Mutua Fides), Grote Markt 27, Groningen
   const TARGET = { lat: 53.218611, lon: 6.568331 };
 
-  const THEMES = ["light", "dark", "classic", "heineken"];
+  const THEMES = ["heineken", "light", "dark", "classic"];
   let themeIndex = 0;
 
   const ARROW_NEEDLE = `
@@ -255,13 +255,36 @@
     <polygon points="50,94 60,54 50,62 40,54" fill="var(--needle)"/>
   `;
   // Stylized bottle, cap at the top of the viewBox — the "pointing" end.
+  // Original artwork (gradient glass + generic star label) — not a reproduction
+  // of any brand's actual logo/wordmark.
   const BOTTLE_NEEDLE = `
-    <rect x="43" y="3" width="14" height="9" rx="2" fill="#c9a227"/>
-    <rect x="45" y="12" width="10" height="21" fill="#0a6a3b"/>
-    <path d="M45,33 L55,33 L66,46 L34,46 Z" fill="#0a6a3b"/>
-    <rect x="30" y="46" width="40" height="46" rx="12" fill="#0a6a3b"/>
-    <rect x="35" y="59" width="30" height="21" rx="2" fill="#f6f6f0"/>
-    <polygon points="50,62 51.9,66.9 57,67.2 53,70.5 54.3,75.5 50,72.6 45.7,75.5 47,70.5 43,67.2 48.1,66.9" fill="#d0102a"/>
+    <defs>
+      <linearGradient id="pv-glass" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#12854a"/>
+        <stop offset="45%" stop-color="#0a6a3b"/>
+        <stop offset="100%" stop-color="#074f2c"/>
+      </linearGradient>
+      <linearGradient id="pv-cap" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#e6c65a"/>
+        <stop offset="100%" stop-color="#b8912a"/>
+      </linearGradient>
+    </defs>
+    <ellipse cx="50" cy="93" rx="17" ry="3" fill="#000000" opacity="0.15"/>
+    <path d="M31,52 Q29,73 34,90 Q40,94 50,94 Q60,94 66,90 Q71,73 69,52 Z" fill="url(#pv-glass)"/>
+    <path d="M45,32 L55,32 L67,52 L33,52 Z" fill="url(#pv-glass)"/>
+    <rect x="45" y="11" width="10" height="22" fill="url(#pv-glass)"/>
+    <rect x="42" y="3" width="16" height="9" rx="2" fill="url(#pv-cap)"/>
+    <g opacity="0.55" stroke="#8a6a1c" stroke-width="0.6">
+      <line x1="44.5" y1="3" x2="44.5" y2="12"/>
+      <line x1="47.5" y1="3" x2="47.5" y2="12"/>
+      <line x1="50.5" y1="3" x2="50.5" y2="12"/>
+      <line x1="53.5" y1="3" x2="53.5" y2="12"/>
+      <line x1="56.5" y1="3" x2="56.5" y2="12"/>
+    </g>
+    <path d="M35,35 Q34,58 36,88" stroke="#ffffff" stroke-width="2.2" opacity="0.22" fill="none" stroke-linecap="round"/>
+    <rect x="36" y="58" width="28" height="22" rx="2" fill="#f6f6f0" stroke="#0a6a3b" stroke-width="0.8"/>
+    <polygon points="50,61 51.8,65.6 56.7,65.9 52.9,69.1 54.2,73.9 50,71.1 45.8,73.9 47.1,69.1 43.3,65.9 48.2,65.6" fill="#d0102a"/>
+    <rect x="39" y="76" width="22" height="1.3" rx="0.6" fill="#0a6a3b" opacity="0.55"/>
   `;
   const NEEDLE_BY_THEME = { heineken: BOTTLE_NEEDLE };
   function buildNeedle() {
