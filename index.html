@@ -137,7 +137,15 @@
   button.primary:active { transform: scale(0.96); }
 
   /* --- Compass screen --- */
-  #compass-screen { justify-content: center; gap: 40px; padding: 40px 24px; }
+  #compass-screen { padding: 40px 24px; }
+
+  .dial-center {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
   .dial-wrap {
     position: relative;
@@ -428,10 +436,12 @@
 
   <!-- Compass screen -->
   <div class="screen" id="compass-screen">
-    <div class="dial-wrap" id="dial-wrap">
-      <div class="dial" id="dial"></div>
-      <svg id="needle-svg" viewBox="0 0 100 100"></svg>
-      <div class="center-dot"></div>
+    <div class="dial-center">
+      <div class="dial-wrap" id="dial-wrap">
+        <div class="dial" id="dial"></div>
+        <svg id="needle-svg" viewBox="0 0 100 100"></svg>
+        <div class="center-dot"></div>
+      </div>
     </div>
 
     <div class="info">
