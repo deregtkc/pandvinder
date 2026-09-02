@@ -567,7 +567,9 @@
   });
 
   distanceEl.addEventListener("click", () => {
-    const destination = `${TARGET.lat},${TARGET.lon}`;
+    // Text destination so Maps resolves to the actual business listing,
+    // not a bare coordinate pin.
+    const destination = encodeURIComponent("Vindicat atque Polit, Groningen");
     let url = `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=driving`;
     if (currentPos) {
       url = `https://www.google.com/maps/dir/?api=1&origin=${currentPos.lat},${currentPos.lon}&destination=${destination}&travelmode=driving`;
