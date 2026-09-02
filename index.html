@@ -196,6 +196,21 @@
     font-size: 0.78rem;
     margin-top: 3px;
   }
+  .countdown-block {
+    margin-top: 14px;
+  }
+  .countdown-time {
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+  }
+  .countdown-caption {
+    color: var(--muted);
+    font-size: 0.78rem;
+    margin-top: 2px;
+  }
   .warning {
     color: var(--accent);
     font-size: 0.8rem;
@@ -299,9 +314,12 @@
 
     <div class="info">
       <div class="distance" id="distance">-- m</div>
-      <div class="label">naar Vindicat atque Polit</div>
+      <div class="label">Naar het 8e MF</div>
       <div class="meta" id="multiple"></div>
-      <div class="meta" id="countdown"></div>
+      <div class="countdown-block">
+        <div class="countdown-time" id="countdown-time"></div>
+        <div class="countdown-caption">tot 18:15</div>
+      </div>
       <div class="warning" id="warning"></div>
     </div>
   </div>
@@ -434,7 +452,7 @@
   const needle = document.getElementById("needle-svg");
   const distanceEl = document.getElementById("distance");
   const multipleEl = document.getElementById("multiple");
-  const countdownEl = document.getElementById("countdown");
+  const countdownEl = document.getElementById("countdown-time");
   const warningEl = document.getElementById("warning");
   const errorTitle = document.getElementById("error-title");
   const errorText = document.getElementById("error-text");
@@ -550,7 +568,7 @@
     const h = Math.floor(totalSec / 3600);
     const m = Math.floor((totalSec % 3600) / 60);
     const s = totalSec % 60;
-    countdownEl.textContent = `${pad2(h)}:${pad2(m)}:${pad2(s)} tot 18:15`;
+    countdownEl.textContent = `${pad2(h)}:${pad2(m)}:${pad2(s)}`;
   }
   updateCountdown();
   setInterval(updateCountdown, 1000);
