@@ -204,6 +204,75 @@
   }
 
   .error-icon { font-size: 2.4rem; margin-bottom: 12px; }
+
+  [hidden] { display: none !important; }
+
+  /* --- Ads: footer links + consent banner (all gated by ADS_ENABLED) --- */
+  .ads-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 8px;
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    z-index: 20;
+    pointer-events: none;
+  }
+  .ads-footer-link {
+    pointer-events: auto;
+    color: var(--muted);
+    font-size: 0.7rem;
+    text-decoration: underline;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 4px;
+  }
+  .consent-banner {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    z-index: 30;
+    max-width: 420px;
+    margin: 0 auto;
+    background: var(--bg);
+    color: var(--fg);
+    border: 1px solid var(--muted);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+    text-align: left;
+  }
+  .consent-banner p {
+    margin: 0 0 12px;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    color: var(--fg);
+  }
+  .consent-banner a { color: var(--fg); }
+  .consent-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+  .consent-btn {
+    border: none;
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: var(--fg);
+    color: var(--bg);
+  }
+  .consent-btn.ghost {
+    background: none;
+    border: 1px solid var(--muted);
+    color: var(--fg);
+  }
 </style>
 </head>
 <body>
@@ -247,6 +316,25 @@
 
 </div>
 
+<!-- Ads-related UI: entirely hidden unless ADS_ENABLED is true (config.js) -->
+<div class="ads-footer" id="ads-footer" hidden>
+  <a class="ads-footer-link" href="privacy.html">Privacybeleid</a>
+  <button type="button" class="ads-footer-link" id="cookie-settings-btn">Cookie-instellingen</button>
+</div>
+
+<div class="consent-banner" id="consent-banner" hidden>
+  <p>
+    Deze site kan advertenties tonen via Google AdSense, wat het plaatsen van
+    cookies inhoudt. Lees ons <a href="privacy.html">privacybeleid</a> voor
+    meer informatie.
+  </p>
+  <div class="consent-actions">
+    <button type="button" class="consent-btn ghost" id="consent-decline">Weigeren</button>
+    <button type="button" class="consent-btn" id="consent-accept">Accepteren</button>
+  </div>
+</div>
+
+<script src="config.js"></script>
 <script>
 (function () {
   "use strict";
@@ -351,6 +439,11 @@
   const errorTitle = document.getElementById("error-title");
   const errorText = document.getElementById("error-text");
   const dial = document.getElementById("dial");
+  const adsFooter = document.getElementById("ads-footer");
+  const consentBanner = document.getElementById("consent-banner");
+  const cookieSettingsBtn = document.getElementById("cookie-settings-btn");
+  const consentAcceptBtn = document.getElementById("consent-accept");
+  const consentDeclineBtn = document.getElementById("consent-decline");
 
   let currentPos = null;
   let currentHeading = null;
@@ -710,7 +803,57 @@
 
   document.addEventListener("touchmove", (e) => e.preventDefault(), { passive: false });
 
+  // --- Ads: everything here is a no-op unless ADS_ENABLED is true (config.js) ---
+  const AD_CONSENT_KEY = "pv-ad-consent"; // "granted" | "denied"
+
+  function loadAdSenseScript() {
+    if (!ADS_ENABLED || !ADSENSE_PUBLISHER_ID) return;
+    if (document.getElementById("pv-adsense-script")) return;
+    const s = document.createElement("script");
+    s.id = "pv-adsense-script";
+    s.async = true;
+    s.crossOrigin = "anonymous";
+    s.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_PUBLISHER_ID}`;
+    document.head.appendChild(s);
+  }
+
+  function getAdConsent() {
+    try { return localStorage.getItem(AD_CONSENT_KEY); } catch (e) { return null; }
+  }
+  function setAdConsent(value) {
+    try { localStorage.setItem(AD_CONSENT_KEY, value); } catch (e) { /* ignore */ }
+  }
+
+  function initAds() {
+    if (!ADS_ENABLED) {
+      adsFooter.hidden = true;
+      consentBanner.hidden = true;
+      return;
+    }
+    adsFooter.hidden = false;
+    const consent = getAdConsent();
+    if (consent === "granted") {
+      loadAdSenseScript();
+    } else if (consent !== "denied") {
+      consentBanner.hidden = false;
+    }
+  }
+
+  consentAcceptBtn.addEventListener("click", () => {
+    setAdConsent("granted");
+    consentBanner.hidden = true;
+    loadAdSenseScript();
+  });
+  consentDeclineBtn.addEventListener("click", () => {
+    setAdConsent("denied");
+    consentBanner.hidden = true;
+  });
+  cookieSettingsBtn.addEventListener("click", () => {
+    if (ADS_ENABLED) consentBanner.hidden = false;
+  });
+
   applyTheme();
+  initAds();
 })();
 </script>
 </body>
