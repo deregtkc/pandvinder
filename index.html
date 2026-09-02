@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pandvinder</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --fg: #111111;
+    --muted: #6b6b6b;
+    --accent: #d1272d;
+    --needle: #111111;
+    --dial: #e2e2e2;
+  }
+  [data-theme="dark"] {
+    --bg: #0a0a0a;
+    --fg: #f5f5f5;
+    --muted: #9a9a9a;
+    --accent: #ff4b4b;
+    --needle: #f5f5f5;
+    --dial: #1c1c1c;
+  }
+  [data-theme="classic"] {
+    --bg: #f3ecd8;
+    --fg: #2b2115;
+    --muted: #6b5c3f;
+    --accent: #a83232;
+    --needle: #2b2115;
+    --dial: #d9cba3;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    overscroll-behavior: none;
+    user-select: none;
+  }
+  #app {
+    height: 100dvh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  /* --- Screens --- */
+  .screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    padding: 24px;
+    text-align: center;
+  }
+  .screen.active { display: flex; }
+
+  h1 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0 0 8px;
+    letter-spacing: 0.02em;
+  }
+  p.sub {
+    color: var(--muted);
+    font-size: 0.95rem;
+    max-width: 320px;
+    line-height: 1.4;
+    margin: 0 0 32px;
+  }
+
+  button.primary {
+    background: var(--fg);
+    color: var(--bg);
+    border: none;
+    border-radius: 999px;
+    padding: 18px 48px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  button.primary:active { transform: scale(0.96); }
+
+  /* --- Compass screen --- */
+  #compass-screen { justify-content: space-between; padding: 40px 24px; }
+
+  .top-row {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+  }
+  #theme-btn {
+    background: none;
+    border: 1px solid var(--muted);
+    color: var(--fg);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+
+  .dial-wrap {
+    position: relative;
+    width: min(72vw, 320px);
+    height: min(72vw, 320px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dial {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: var(--dial);
+    display: none;
+  }
+  [data-theme="classic"] .dial { display: block; }
+  .tick-wrap {
+    position: absolute;
+    inset: 0;
+  }
+  .tick {
+    position: absolute;
+    left: 50%;
+    top: 3%;
+    width: 2px;
+    height: 7%;
+    background: var(--fg);
+    opacity: 0.4;
+    transform: translateX(-50%);
+  }
+  .cardinal {
+    position: absolute;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--fg);
+    opacity: 0.55;
+  }
+
+  #needle-svg {
+    width: 62%;
+    height: 62%;
+    transform: rotate(0deg);
+    transition: transform 0.12s linear;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
+  }
+
+  .center-dot {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .info {
+    text-align: center;
+  }
+  .distance {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .label {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-top: 4px;
+  }
+  .warning {
+    color: var(--accent);
+    font-size: 0.8rem;
+    min-height: 1.2em;
+    margin-top: 6px;
+  }
+
+  .error-icon { font-size: 2.4rem; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Start screen -->
+  <div class="screen active" id="start-screen">
+    <h1>Pandvinder</h1>
+    <p class="sub">Points the way to Vindicat atque Polit, wherever you are in Groningen. Needs your location and compass.</p>
+    <button class="primary" id="start-btn">Start</button>
+  </div>
+
+  <!-- Compass screen -->
+  <div class="screen" id="compass-screen">
+    <div class="top-row">
+      <button id="theme-btn">Theme</button>
+    </div>
+
+    <div class="dial-wrap" id="dial-wrap">
+      <div class="dial" id="dial"></div>
+      <svg id="needle-svg" viewBox="0 0 100 100">
+        <polygon points="50,6 60,54 50,46 40,54" fill="var(--accent)"/>
+        <polygon points="50,94 60,54 50,62 40,54" fill="var(--needle)"/>
+      </svg>
+      <div class="center-dot"></div>
+    </div>
+
+    <div class="info">
+      <div class="distance" id="distance">-- m</div>
+      <div class="label">to Vindicat atque Polit</div>
+      <div class="warning" id="warning"></div>
+    </div>
+  </div>
+
+  <!-- Error screen -->
+  <div class="screen" id="error-screen">
+    <div class="error-icon">⚠</div>
+    <h1 id="error-title">Something went wrong</h1>
+    <p class="sub" id="error-text">Details go here.</p>
+    <button class="primary" id="retry-btn">Try again</button>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // Vindicat atque Polit (Mutua Fides), Grote Markt 27, Groningen
+  const TARGET = { lat: 53.218611, lon: 6.568331 };
+
+  const THEMES = ["light", "dark", "classic"];
+  let themeIndex = 0;
+
+  const app = document.getElementById("app");
+  const screens = {
+    start: document.getElementById("start-screen"),
+    compass: document.getElementById("compass-screen"),
+    error: document.getElementById("error-screen"),
+  };
+  const startBtn = document.getElementById("start-btn");
+  const themeBtn = document.getElementById("theme-btn");
+  const retryBtn = document.getElementById("retry-btn");
+  const needle = document.getElementById("needle-svg");
+  const distanceEl = document.getElementById("distance");
+  const warningEl = document.getElementById("warning");
+  const errorTitle = document.getElementById("error-title");
+  const errorText = document.getElementById("error-text");
+  const dial = document.getElementById("dial");
+
+  let currentPos = null;
+  let currentHeading = null;
+  let lastFixTime = 0;
+  let lastOrientationTime = 0;
+  let watchId = null;
+
+  function showScreen(name) {
+    Object.values(screens).forEach(s => s.classList.remove("active"));
+    screens[name].classList.add("active");
+  }
+
+  function showError(title, text) {
+    errorTitle.textContent = title;
+    errorText.textContent = text;
+    showScreen("error");
+  }
+
+  function applyTheme() {
+    document.documentElement.setAttribute("data-theme", THEMES[themeIndex]);
+  }
+  themeBtn.addEventListener("click", () => {
+    themeIndex = (themeIndex + 1) % THEMES.length;
+    applyTheme();
+  });
+
+  function buildDial() {
+    dial.innerHTML = "";
+    const tickWrap = document.createElement("div");
+    tickWrap.className = "tick-wrap";
+    dial.appendChild(tickWrap);
+    for (let deg = 0; deg < 360; deg += 30) {
+      const spin = document.createElement("div");
+      spin.className = "tick-wrap";
+      spin.style.transform = `rotate(${deg}deg)`;
+      const tick = document.createElement("div");
+      tick.className = "tick";
+      spin.appendChild(tick);
+      tickWrap.appendChild(spin);
+    }
+    const labels = [["N", 0], ["E", 90], ["S", 180], ["W", 270]];
+    labels.forEach(([txt, deg]) => {
+      const el = document.createElement("div");
+      el.className = "cardinal";
+      el.textContent = txt;
+      const rad = (deg - 90) * Math.PI / 180;
+      const r = 44; // percent
+      const x = 50 + r * Math.cos(rad);
+      const y = 50 + r * Math.sin(rad);
+      el.style.left = `calc(${x}% - 8px)`;
+      el.style.top = `calc(${y}% - 8px)`;
+      dial.appendChild(el);
+    });
+  }
+  buildDial();
+
+  function toRad(d) { return d * Math.PI / 180; }
+  function toDeg(r) { return r * 180 / Math.PI; }
+
+  function bearingTo(from, to) {
+    const lat1 = toRad(from.lat), lat2 = toRad(to.lat);
+    const dLon = toRad(to.lon - from.lon);
+    const y = Math.sin(dLon) * Math.cos(lat2);
+    const x = Math.cos(lat1) * Math.sin(lat2) -
+              Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+    return (toDeg(Math.atan2(y, x)) + 360) % 360;
+  }
+
+  function distanceMeters(from, to) {
+    const R = 6371000;
+    const lat1 = toRad(from.lat), lat2 = toRad(to.lat);
+    const dLat = toRad(to.lat - from.lat);
+    const dLon = toRad(to.lon - from.lon);
+    const a = Math.sin(dLat / 2) ** 2 +
+              Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  function formatDistance(m) {
+    if (m < 1000) return `${Math.round(m)} m`;
+    return `${(m / 1000).toFixed(2)} km`;
+  }
+
+  let displayedRotation = 0;
+  function setNeedleRotation(targetDeg) {
+    // shortest-path rotation to avoid the needle spinning the long way around
+    let delta = ((targetDeg - displayedRotation + 540) % 360) - 180;
+    displayedRotation += delta;
+    needle.style.transform = `rotate(${displayedRotation}deg)`;
+  }
+
+  function update() {
+    if (!currentPos) return;
+
+    const dist = distanceMeters(currentPos, TARGET);
+    distanceEl.textContent = formatDistance(dist);
+
+    if (currentHeading === null) {
+      warningEl.textContent = "Waiting for compass…";
+      return;
+    }
+
+    const bearing = bearingTo(currentPos, TARGET);
+    const relative = (bearing - currentHeading + 360) % 360;
+    setNeedleRotation(relative);
+
+    const staleGPS = Date.now() - lastFixTime > 15000;
+    const staleOri = Date.now() - lastOrientationTime > 3000;
+    if (staleOri) {
+      warningEl.textContent = "Compass signal lost — move your phone in a figure-8 to recalibrate.";
+    } else if (staleGPS) {
+      warningEl.textContent = "GPS signal weak — location may be outdated.";
+    } else {
+      warningEl.textContent = "";
+    }
+  }
+
+  function onPosition(pos) {
+    currentPos = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+    lastFixTime = Date.now();
+    update();
+  }
+
+  function onPositionError(err) {
+    showError("Location unavailable", "Pandvinder couldn't access your location. Please check that location services are enabled and permission is granted, then try again.");
+  }
+
+  function onOrientation(evt) {
+    let heading = null;
+    if (typeof evt.webkitCompassHeading === "number") {
+      // iOS Safari: already a true compass heading
+      heading = evt.webkitCompassHeading;
+    } else if (evt.alpha !== null && evt.absolute === true) {
+      heading = 360 - evt.alpha;
+    } else if (evt.alpha !== null) {
+      // Best effort on browsers without absolute orientation
+      heading = 360 - evt.alpha;
+    }
+    if (heading === null || Number.isNaN(heading)) return;
+    currentHeading = (heading + 360) % 360;
+    lastOrientationTime = Date.now();
+    update();
+  }
+
+  function startWatchingPosition() {
+    if (!("geolocation" in navigator)) {
+      showError("No GPS available", "This device or browser doesn't support location access, which Pandvinder needs to find Vindicat.");
+      return false;
+    }
+    watchId = navigator.geolocation.watchPosition(onPosition, onPositionError, {
+      enableHighAccuracy: true,
+      maximumAge: 5000,
+      timeout: 20000,
+    });
+    return true;
+  }
+
+  function startWatchingOrientation() {
+    const hasOrientation = "DeviceOrientationEvent" in window;
+    if (!hasOrientation) {
+      showError("No compass available", "This device doesn't appear to have an orientation sensor, which Pandvinder needs to point the way.");
+      return false;
+    }
+    const eventName = "ondeviceorientationabsolute" in window ? "deviceorientationabsolute" : "deviceorientation";
+    window.addEventListener(eventName, onOrientation);
+
+    // Watchdog: if no orientation event arrives after a few seconds, sensor is likely unavailable/denied.
+    setTimeout(() => {
+      if (lastOrientationTime === 0) {
+        showError(
+          "Compass not responding",
+          "Pandvinder isn't receiving compass data. Make sure motion & orientation access is allowed for this site, then try again."
+        );
+      }
+    }, 6000);
+    return true;
+  }
+
+  async function requestPermissionsAndStart() {
+    // iOS 13+ requires an explicit user-gesture permission request for orientation.
+    try {
+      if (typeof DeviceOrientationEvent !== "undefined" &&
+          typeof DeviceOrientationEvent.requestPermission === "function") {
+        const state = await DeviceOrientationEvent.requestPermission();
+        if (state !== "granted") {
+          showError("Compass permission denied", "Pandvinder needs motion & orientation access to work as a compass. Please allow it in your browser settings and try again.");
+          return;
+        }
+      }
+    } catch (e) {
+      showError("Compass permission denied", "Pandvinder needs motion & orientation access to work as a compass. Please allow it in your browser settings and try again.");
+      return;
+    }
+
+    if (!startWatchingPosition()) return;
+    if (!startWatchingOrientation()) return;
+
+    showScreen("compass");
+  }
+
+  startBtn.addEventListener("click", requestPermissionsAndStart);
+  retryBtn.addEventListener("click", () => {
+    if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    currentPos = null;
+    currentHeading = null;
+    lastFixTime = 0;
+    lastOrientationTime = 0;
+    showScreen("start");
+  });
+
+  applyTheme();
+})();
+</script>
+</body>
+</html>
