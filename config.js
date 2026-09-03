@@ -8,3 +8,11 @@ const ADS_ENABLED = false;
 
 // From your AdSense dashboard, looks like "ca-pub-1234567890123456".
 const ADSENSE_PUBLISHER_ID = "ca-pub-1231365130153877";
+
+// Powers the optional Groep (shared leaderboard) feature. Leave both blank
+// to keep it off — the Groep panel shows a friendly placeholder instead of
+// trying to connect. Fill in once you've created a Supabase project, run
+// the schema SQL from the redesign plan, and enabled Anonymous sign-ins
+// under Authentication settings there.
+const SUPABASE_URL = "";
+const SUPABASE_ANON_KEY = "";

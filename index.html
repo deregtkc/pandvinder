@@ -5,50 +5,53 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="google-adsense-account" content="ca-pub-1231365130153877">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;600;700&display=swap">
 <title>Pandvinder</title>
 <style>
   :root {
-    --bg: #fafafa;
-    --fg: #111111;
-    --muted: #6b6b6b;
-    --accent: #d1272d;
-    --needle: #111111;
-    --dial: #e2e2e2;
+    --bg: #f5ead8;
+    --fg: #201e1d;
+    --muted: #645c50;
+    --accent: #c67139;
+    --accent-hover: #b2622d;
+    --accent-active: #8c491a;
+    --needle: #201e1d;
+    --dial: #ebddc5;
+    --sage: #7a8a5e;
+    --sage-pale: #e1eecc;
+    --sage-dark: #3d472b;
+    --peach: #ffe1d0;
+    --font-display: "Caprasimo", serif;
+    --font-body: "Figtree", system-ui, sans-serif;
   }
   [data-theme="dark"] {
-    --bg: #0a0a0a;
-    --fg: #f5f5f5;
-    --muted: #9a9a9a;
-    --accent: #ff4b4b;
-    --needle: #f5f5f5;
-    --dial: #1c1c1c;
+    --bg: #2e2b25;
+    --fg: #f5ead8;
+    --muted: #a99f8e;
+    --dial: #3a362d;
+    --needle: #f5ead8;
   }
   [data-theme="classic"] {
-    --bg: #f3ecd8;
-    --fg: #2b2115;
-    --muted: #6b5c3f;
-    --accent: #a83232;
-    --needle: #2b2115;
-    --dial: #d9cba3;
+    --bg: #ebddc5;
+    --fg: #201e1d;
+    --muted: #6f6355;
+    --dial: #ddcaa8;
+    --needle: #201e1d;
   }
   [data-theme="mutuafides"] {
-    --bg: #f2ede1;
-    --fg: #0a3d24;
-    --muted: #6c7a6f;
-    --accent: #d0102a;
-    --needle: #0a6a3b;
-    --dial: #e2e2e2;
+    --bg: #f5ead8;
   }
   [data-theme="mutuafides"] .center-dot { display: none; }
 
   /* "Kater" (hangover): everything washed out and a bit blurry. */
   [data-theme="kater"] {
-    --bg: #c9c9c9;
-    --fg: #4a4a4a;
-    --muted: #8f8f8f;
-    --accent: #6e6e6e;
-    --needle: #555555;
-    --dial: #b0b0b0;
+    --bg: #c0b6a5;
+    --fg: #4a453d;
+    --muted: #7d7466;
+    --needle: #4a453d;
+    --dial: #ab9f8c;
   }
   [data-theme="kater"] #needle-svg {
     filter: grayscale(1) blur(0.8px) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.15));
@@ -56,12 +59,11 @@
 
   /* Disco: the whole app slowly cycles through the rainbow. */
   [data-theme="disco"] {
-    --bg: #0a0a0f;
-    --fg: #ffffff;
-    --muted: #cfa6ff;
-    --accent: #ff2fd0;
-    --needle: #35e0ff;
-    --dial: #1c1c2e;
+    --bg: #201e1d;
+    --fg: #f5ead8;
+    --muted: #d9c9b0;
+    --needle: #f6a06b;
+    --dial: #3a362d;
   }
   [data-theme="disco"] #app {
     animation: pv-disco-hue 4s linear infinite;
@@ -79,7 +81,7 @@
     overflow: hidden;
     background: var(--bg);
     color: var(--fg);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: var(--font-body);
     overscroll-behavior: none;
     touch-action: none;
     -webkit-user-select: none;
@@ -110,34 +112,90 @@
   .screen.active { display: flex; }
 
   h1 {
-    font-size: 1.4rem;
-    font-weight: 600;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.9rem;
     margin: 0 0 8px;
-    letter-spacing: 0.02em;
+    letter-spacing: -0.01em;
   }
   p.sub {
     color: var(--muted);
     font-size: 0.95rem;
     max-width: 320px;
     line-height: 1.4;
-    margin: 0 0 32px;
+    margin: 0 0 24px;
   }
 
   button.primary {
-    background: var(--fg);
+    background: var(--accent);
     color: var(--bg);
     border: none;
     border-radius: 999px;
-    padding: 18px 48px;
+    padding: 18px 44px;
+    font-family: var(--font-display);
+    font-weight: 400;
     font-size: 1.1rem;
-    font-weight: 600;
     cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+  button.primary:hover { background: var(--accent-hover); }
+  button.primary:active { background: var(--accent-active); transform: scale(0.96); }
+
+  .sound-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 18px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .toggle-switch {
+    position: relative;
+    width: 44px;
+    height: 26px;
+    border-radius: 999px;
+    background: var(--sage);
+    border: none;
+    padding: 3px;
+    cursor: pointer;
+    flex: none;
+    transition: background 0.15s ease;
+  }
+  .toggle-switch[data-on="false"] { background: #b9b0a0; }
+  .toggle-switch::after {
+    content: "";
+    display: block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--bg);
+    transform: translateX(18px);
     transition: transform 0.15s ease;
   }
-  button.primary:active { transform: scale(0.96); }
+  .toggle-switch[data-on="false"]::after { transform: translateX(0); }
 
   /* --- Compass screen --- */
-  #compass-screen { padding: 40px 24px; }
+  #compass-screen { padding: 40px 24px; transition: background 0.35s ease; }
+  #app[data-aligned="true"] #compass-screen { background: var(--sage-pale); color: var(--sage-dark); }
+  #compass-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  .aligned-label {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--sage-dark);
+  }
+  #app[data-aligned="true"] .aligned-label { display: inline-flex; }
 
   .dial-center {
     flex: 1;
@@ -161,30 +219,29 @@
     height: 100%;
     border-radius: 50%;
     background: var(--dial);
-    display: none;
   }
-  [data-theme="classic"] .dial { display: block; }
-  .tick-wrap {
+  .dial::before {
+    content: "";
     position: absolute;
-    inset: 0;
+    inset: 22px;
+    border-radius: 50%;
+    border: 1px dashed rgba(32, 30, 29, 0.16);
   }
-  .tick {
+  #app[data-aligned="true"] .dial {
+    outline: 2px solid rgba(122, 138, 94, 0.45);
+    outline-offset: -12px;
+  }
+  .dial-tick {
     position: absolute;
     left: 50%;
-    top: 3%;
-    width: 2px;
-    height: 7%;
-    background: var(--fg);
-    opacity: 0.4;
+    top: 8%;
+    width: 3px;
+    height: 15px;
+    border-radius: 999px;
+    background: var(--accent);
     transform: translateX(-50%);
   }
-  .cardinal {
-    position: absolute;
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--fg);
-    opacity: 0.55;
-  }
+  #app[data-aligned="true"] .dial-tick { background: var(--sage-dark); }
 
   #needle-svg {
     width: 62%;
@@ -208,8 +265,9 @@
     text-align: center;
   }
   .distance {
-    font-size: 1.6rem;
-    font-weight: 700;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 2.6rem;
     letter-spacing: -0.01em;
     cursor: pointer;
   }
@@ -218,28 +276,52 @@
   }
   .label {
     color: var(--muted);
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     margin-top: 4px;
   }
+  #app[data-aligned="true"] .label { color: var(--sage-dark); }
   .meta {
     color: var(--muted);
     font-size: 0.78rem;
     margin-top: 3px;
   }
-  .countdown-block {
-    margin-top: 14px;
+  .pill-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
   }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    background: var(--dial);
+    color: var(--fg);
+  }
+  #app[data-aligned="true"] .pill {
+    background: var(--sage);
+    color: var(--bg);
+  }
+  .pill-route {
+    background: none;
+    border: 1px solid rgba(32, 30, 29, 0.16);
+    color: var(--accent);
+    font-family: inherit;
+    cursor: pointer;
+  }
+  #app[data-aligned="true"] .pill-route { display: none; }
   .countdown-time {
     display: inline-block;
-    font-size: 1.35rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    font-variant-numeric: tabular-nums;
-    color: var(--accent);
     transition: font-size 0.2s ease;
   }
   .countdown-time.countdown-urgent {
-    font-size: 2.3rem;
+    font-size: 1.5em;
   }
   @keyframes pv-countdown-pulse {
     0% { transform: scale(1); }
@@ -249,240 +331,422 @@
   .countdown-time.countdown-pulse {
     animation: pv-countdown-pulse 0.4s ease-out;
   }
-  .countdown-caption {
-    color: var(--muted);
-    font-size: 0.78rem;
-    margin-top: 2px;
-  }
   .warning {
-    color: var(--accent);
+    color: var(--accent-active);
     font-size: 0.8rem;
     min-height: 1.2em;
-    margin-top: 6px;
-  }
-
-  .alignment-badge {
-    display: inline-block;
     margin-top: 10px;
-    padding: 6px 16px;
-    border-radius: 999px;
-    background: rgba(22, 163, 74, 0.15);
-    color: #16a34a;
-    font-weight: 700;
-    font-size: 0.85rem;
-    letter-spacing: 0.01em;
   }
 
-  #help-btn, #stats-btn {
+  #bell-btn {
     position: fixed;
-    z-index: 15;
-    background: none;
-    border: 1px solid var(--muted);
-    color: var(--fg);
-    border-radius: 999px;
-    font-size: 0.8rem;
-    font-family: inherit;
-    cursor: pointer;
-  }
-  #help-btn {
-    top: 16px;
     right: 16px;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    padding: 0;
-  }
-  #stats-btn {
     bottom: 16px;
-    right: 16px;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-  }
-
-  /* --- Stats / help overlays --- */
-  .stats-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.35);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 60;
-    padding: 24px;
-  }
-  .stats-card {
-    background: var(--bg);
-    color: var(--fg);
-    border-radius: 20px;
-    padding: 28px 32px;
-    text-align: center;
-    max-width: 300px;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-  }
-  .stats-title {
-    font-size: 1.2rem;
-    font-weight: 800;
-    margin-bottom: 18px;
-  }
-  .stats-line {
-    font-size: 0.95rem;
-    margin-bottom: 6px;
-    color: var(--fg);
-    line-height: 1.4;
-  }
-
-  /* --- Stats hero + tiles --- */
-  .stats-hero-number {
-    font-size: 3rem;
-    font-weight: 800;
-    color: var(--accent);
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-  }
-  .stats-hero-label {
-    color: var(--muted);
-    font-size: 0.85rem;
-    margin-top: 2px;
-    margin-bottom: 6px;
-  }
-  .stats-hero-caption {
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin-bottom: 18px;
-  }
-  .stats-grid {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 4px;
-  }
-  .stats-tile {
-    flex: 1;
-    background: rgba(127, 127, 127, 0.12);
-    border-radius: 14px;
-    padding: 12px 8px;
-  }
-  .stats-tile-value {
-    font-size: 1.3rem;
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-  }
-  .stats-tile-label {
-    color: var(--muted);
-    font-size: 0.72rem;
-    margin-top: 2px;
-  }
-  .stats-empty {
-    font-size: 0.95rem;
-    line-height: 1.5;
-    margin-bottom: 4px;
-  }
-
-  /* --- Help list --- */
-  .help-list {
-    text-align: left;
-  }
-  .help-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 12px 0;
-  }
-  .help-item + .help-item {
-    border-top: 1px solid rgba(127, 127, 127, 0.25);
-  }
-  .help-icon {
-    flex: 0 0 auto;
-    width: 32px;
-    height: 32px;
-    border-radius: 999px;
-    background: rgba(127, 127, 127, 0.15);
-    color: var(--accent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .help-text strong {
-    display: block;
-    font-size: 0.95rem;
-    margin-bottom: 2px;
-  }
-  .help-text span {
-    display: block;
-    color: var(--muted);
-    font-size: 0.85rem;
-    line-height: 1.4;
-  }
-
-  .stats-close {
-    margin-top: 16px;
-    background: var(--fg);
+    z-index: 15;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--accent);
     color: var(--bg);
     border: none;
-    border-radius: 999px;
-    padding: 8px 20px;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
-  }
-
-  /* --- Achievement pop-up (18:15 streak milestones) --- */
-  .achievement-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.35);
+    box-shadow: 0 10px 28px rgba(46, 43, 37, 0.22);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 60;
     cursor: pointer;
-    padding: 24px;
   }
-  .achievement-card {
-    background: var(--bg);
-    color: var(--fg);
-    border-radius: 20px;
-    padding: 28px 32px;
-    text-align: center;
-    max-width: 300px;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-    animation: pv-achievement-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    cursor: default;
+  #bell-btn:hover { background: var(--accent-hover); }
+  #bell-btn:active { background: var(--accent-active); }
+
+  #tab-bar {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    z-index: 15;
+    height: 56px;
+    background: var(--ink, #201e1d);
+    background: #201e1d;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 8px;
+    box-shadow: 0 10px 28px rgba(46, 43, 37, 0.22);
   }
-  @keyframes pv-achievement-pop {
-    0% { transform: scale(0.7); opacity: 0; }
-    60% { transform: scale(1.06); opacity: 1; }
-    100% { transform: scale(1); opacity: 1; }
+  .tab-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    color: #ebddc5;
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 9px 0;
+    border-radius: 999px;
+    cursor: pointer;
   }
-  .achievement-title {
-    font-size: 1.4rem;
-    font-weight: 800;
-    margin-bottom: 8px;
+  .tab-btn[data-active="true"] {
+    background: var(--accent);
+    color: #f5ead8;
   }
-  .achievement-sub {
-    font-size: 0.95rem;
-    color: var(--muted);
-    line-height: 1.4;
+  .tab-close {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #f5ead8;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
   }
 
-  .error-icon { font-size: 2.4rem; margin-bottom: 12px; }
+  /* --- Reeks / Groep / Uitleg panels: in-place, share the bottom tab bar --- */
+  .panel {
+    width: 100%;
+    max-width: 360px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding-top: 8px;
+    padding-bottom: 76px;
+    overflow-y: auto;
+    text-align: left;
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .panel-header h4 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.4rem;
+  }
+  .panel-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--dial);
+    border: none;
+    color: var(--fg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex: none;
+  }
+
+  .reeks-hero {
+    background: var(--dial);
+    border-radius: 24px;
+    padding: 22px;
+    text-align: center;
+  }
+  .reeks-hero-number {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 4.4rem;
+    line-height: 0.9;
+    color: var(--accent);
+  }
+  .reeks-hero-caption {
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+  .dot-row {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    margin-top: 14px;
+  }
+  .dot-row .dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--dial);
+  }
+  .dot-row .dot[data-filled="true"] { background: var(--accent); }
+  .dot-row.thin .dot {
+    width: 22px;
+    height: 6px;
+    border-radius: 999px;
+  }
+
+  .tile-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .tile {
+    flex: 1;
+    background: var(--dial);
+    border-radius: 16px;
+    padding: 14px 10px;
+    text-align: center;
+  }
+  .tile.sage { background: var(--sage-pale); color: var(--sage-dark); }
+  .tile-value {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.5rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .tile-label {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .tile.sage .tile-label { color: var(--sage-dark); }
+
+  .empty-note {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--muted);
+    text-align: center;
+    padding: 20px 0;
+  }
+
+  /* --- Groep panel --- */
+  .member-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--dial);
+    border-radius: 16px;
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+  .member-row.you { background: var(--accent); color: var(--bg); }
+  .member-rank {
+    font-family: var(--font-display);
+    font-weight: 400;
+    width: 20px;
+    color: var(--accent);
+  }
+  .member-row.you .member-rank { color: var(--bg); }
+  .member-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--accent-active);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+    flex: none;
+  }
+  .member-info { flex: 1; min-width: 0; }
+  .member-name { font-size: 0.92rem; font-weight: 600; }
+  .member-sub { font-size: 0.75rem; color: var(--muted); }
+  .member-row.you .member-sub { color: var(--bg); opacity: 0.85; }
+  .member-streak {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.3rem;
+  }
+  .group-total {
+    background: var(--sage-pale);
+    color: var(--sage-dark);
+    border-radius: 20px;
+    padding: 16px 18px;
+    font-size: 0.88rem;
+    line-height: 1.4;
+    margin-top: 8px;
+  }
+  .group-total strong {
+    display: block;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.05rem;
+    margin-bottom: 3px;
+  }
+  .btn-outline {
+    align-self: flex-start;
+    background: none;
+    border: 1px solid rgba(32, 30, 29, 0.16);
+    color: var(--fg);
+    border-radius: 999px;
+    padding: 9px 18px;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 0.92rem;
+    cursor: pointer;
+    margin-top: 14px;
+  }
+  .field-input {
+    width: 100%;
+    border: 1px solid rgba(32, 30, 29, 0.2);
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    background: var(--bg);
+    color: var(--fg);
+    margin-bottom: 10px;
+  }
+
+  /* --- Uitleg panel --- */
+  .help-list { display: flex; flex-direction: column; gap: 17px; margin-bottom: 22px; }
+  .help-item { display: flex; gap: 13px; align-items: flex-start; }
+  .help-icon {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--peach);
+    color: var(--accent-active);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .help-text strong { display: block; font-size: 0.98rem; font-weight: 700; }
+  .help-text span { display: block; font-size: 0.85rem; color: var(--muted); line-height: 1.4; margin-top: 2px; }
+  .panel-divider { height: 1px; background: rgba(32, 30, 29, 0.16); margin: 22px 0; }
+  .panel h5 {
+    margin: 0 0 12px;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.05rem;
+  }
+  .swatch-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 22px; }
+  .swatch-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    width: 58px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .swatch-dot {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+  }
+  .swatch-item[data-active="true"] .swatch-dot { border-color: var(--accent); }
+  .swatch-item span { font-size: 0.68rem; color: var(--muted); }
+  .setting-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--dial);
+    border-radius: 16px;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+  .setting-row .setting-label { flex: 1; font-size: 0.9rem; font-weight: 600; }
+
+  .error-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--peach);
+    color: var(--accent-active);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    font-size: 2rem;
+  }
+  .error-link {
+    align-self: flex-start;
+    margin-top: 6px;
+    background: none;
+    border: none;
+    color: var(--accent-active);
+    font-size: 0.92rem;
+    padding: 8px 0;
+    cursor: pointer;
+    font-family: inherit;
+  }
 
   [hidden] { display: none !important; }
 
-  /* --- Orientation nudge: soft green wash that strengthens as you face the target --- */
-  #alignment-glow {
+  /* --- 18:15 celebration takeover --- */
+  #celebrate-screen {
+    background: var(--accent-active);
+    color: #f5ead8;
     position: fixed;
     inset: 0;
-    background: #16a34a;
-    opacity: 0;
-    transition: opacity 0.2s ease-out;
+    z-index: 70;
+    overflow: hidden;
+  }
+  #celebrate-screen .ring {
+    position: absolute;
+    left: 50%;
+    top: 34%;
+    border-radius: 50%;
+    border: 1px solid rgba(245, 234, 216, 0.2);
+    transform: translate(-50%, -50%);
     pointer-events: none;
+  }
+  #celebrate-screen .celebrate-time {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 3.6rem;
+    margin-top: 20px;
+  }
+  #celebrate-screen .celebrate-sub {
+    color: #ffc6a5;
+    font-size: 1rem;
+    margin-top: 6px;
+  }
+  #celebrate-screen img {
+    width: 110px;
+    height: auto;
+    filter: drop-shadow(0 12px 28px rgba(0,0,0,0.3));
+    position: relative;
+  }
+  .celebrate-card {
+    width: 100%;
+    max-width: 320px;
+    margin-top: auto;
+    background: rgba(245, 234, 216, 0.1);
+    border-radius: 26px;
+    padding: 22px;
+    text-align: center;
+    position: relative;
+  }
+  .celebrate-card h3 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.4rem;
+  }
+  .celebrate-card p {
+    margin: 4px 0 0;
+    font-size: 0.85rem;
+    color: #ffe1d0;
+    line-height: 1.4;
+  }
+  #celebrate-share {
+    margin-top: 18px;
+    width: 100%;
+    background: #f5ead8;
+    color: var(--accent-active);
+    border: none;
+    border-radius: 999px;
+    padding: 14px 0;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1rem;
+    cursor: pointer;
   }
 
   /* --- Confetti pop at 18:15 --- */
@@ -577,111 +841,156 @@
 </style>
 </head>
 <body>
-<div id="alignment-glow"></div>
 <div id="app">
 
   <!-- Start screen -->
   <div class="screen active" id="start-screen">
+    <img src="mutua-fides-bottle.png" alt="" style="width:96px;height:auto;transform:rotate(-8deg);margin-bottom:20px;">
     <h1>Pandvinder</h1>
-    <p class="sub">Wijst de weg naar Vindicat atque Polit, waar je ook bent in Groningen. Heeft je locatie en kompas nodig.</p>
-    <button class="primary" id="start-btn">Start</button>
+    <p class="sub">Wijst de weg naar het 8e MF, waar je ook staat in Groningen — Grote Markt 27. Locatie en kompas nodig.</p>
+    <button class="primary" id="start-btn">Wijs me de weg</button>
+    <div class="sound-row">
+      <button type="button" class="toggle-switch" id="sound-vibrate-toggle" data-on="true" aria-label="Geluid en trillen"></button>
+      <span>Geluid &amp; trillen aan</span>
+    </div>
   </div>
 
   <!-- Compass screen -->
   <div class="screen" id="compass-screen">
-    <button type="button" id="help-btn" aria-label="Help">?</button>
-    <button type="button" id="stats-btn" aria-label="Statistieken">
-      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="1.5" y="9" width="3" height="5.5" rx="0.5" fill="currentColor"/>
-        <rect x="6.5" y="5" width="3" height="9.5" rx="0.5" fill="currentColor"/>
-        <rect x="11.5" y="1.5" width="3" height="13" rx="0.5" fill="currentColor"/>
-      </svg>
-    </button>
 
-    <div class="dial-center">
-      <div class="dial-wrap" id="dial-wrap">
-        <div class="dial" id="dial"></div>
-        <svg id="needle-svg" viewBox="0 0 100 100"></svg>
-        <div class="center-dot"></div>
+    <div id="compass-main">
+      <div class="dial-center">
+        <div class="dial-wrap" id="dial-wrap">
+          <div class="dial" id="dial"></div>
+          <div class="dial-tick"></div>
+          <svg id="needle-svg" viewBox="0 0 100 100"></svg>
+          <div class="center-dot"></div>
+        </div>
+      </div>
+
+      <div class="info">
+        <span class="aligned-label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+          Recht vooruit
+        </span>
+        <div class="distance" id="distance">-- m</div>
+        <div class="label" id="dest-label">naar het 8e MF · Grote Markt 27</div>
+        <div class="meta" id="multiple"></div>
+        <div class="pill-row">
+          <span class="pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+            <span class="countdown-time" id="countdown-time"></span> tot 18:15
+          </span>
+          <button type="button" class="pill pill-route" id="route-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            Route
+          </button>
+        </div>
+        <div class="warning" id="warning"></div>
       </div>
     </div>
 
-    <div class="info">
-      <div class="distance" id="distance">-- m</div>
-      <div class="label">Naar het 8e MF</div>
-      <div class="meta" id="multiple"></div>
-      <div class="countdown-block">
-        <div class="countdown-time" id="countdown-time"></div>
-        <div class="countdown-caption">tot 18:15</div>
+    <!-- Reeks panel -->
+    <div class="panel" id="panel-reeks" hidden>
+      <div class="panel-header">
+        <h4>Jouw reeks</h4>
+        <button type="button" class="panel-close" data-close-panel aria-label="Terug naar kompas">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+        </button>
       </div>
-      <div class="alignment-badge" id="alignment-badge" hidden>✓ Je kijkt recht op het 8e MF</div>
-      <div class="warning" id="warning"></div>
+      <div id="reeks-content"></div>
     </div>
-  </div>
 
-  <!-- Stats overlay -->
-  <div class="stats-overlay" id="stats-overlay" hidden>
-    <div class="stats-card">
-      <div class="stats-title">Statistieken</div>
-      <div id="stats-content"></div>
-      <button type="button" class="stats-close" id="stats-close">Sluiten</button>
+    <!-- Groep panel -->
+    <div class="panel" id="panel-groep" hidden>
+      <div class="panel-header">
+        <h4 id="groep-title">Jouw groep</h4>
+        <button type="button" class="panel-close" data-close-panel aria-label="Terug naar kompas">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div id="groep-content"></div>
     </div>
-  </div>
 
-  <!-- Help overlay -->
-  <div class="stats-overlay" id="help-overlay" hidden>
-    <div class="stats-card">
-      <div class="stats-title">Hoe werkt het?</div>
+    <!-- Uitleg panel -->
+    <div class="panel" id="panel-uitleg" hidden>
+      <div class="panel-header">
+        <h4>Hoe werkt het?</h4>
+        <button type="button" class="panel-close" data-close-panel aria-label="Terug naar kompas">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+        </button>
+      </div>
       <div class="help-list">
         <div class="help-item">
           <div class="help-icon">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M2 8a6 6 0 0 1 10.5-4M14 8a6 6 0 0 1-10.5 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/>
-              <path d="M12 2v3h-3M4 14v-3h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-            </svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m16.2 7.8-2.1 6.3-6.3 2.1 2.1-6.3z"></path></svg>
           </div>
-          <div class="help-text"><strong>Kompas</strong><span>Tik erop om van thema te wisselen.</span></div>
+          <div class="help-text"><strong>Tik op de fles</strong><span>Wissel van thema — van klassiek kompas tot kater.</span></div>
         </div>
         <div class="help-item">
           <div class="help-icon">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8 15s5-4.5 5-8.5A5 5 0 0 0 3 6.5C3 10.5 8 15 8 15Z" stroke="currentColor" stroke-width="1.3" fill="none"/>
-              <circle cx="8" cy="6.5" r="1.8" fill="currentColor"/>
-            </svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg>
           </div>
-          <div class="help-text"><strong>Afstand</strong><span>Tik erop om naar Het Pand te navigeren.</span></div>
+          <div class="help-text"><strong>Tik op de afstand</strong><span>Opent de route naar Het Pand in Maps.</span></div>
         </div>
         <div class="help-item">
           <div class="help-icon">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="1.5" y="9" width="3" height="5.5" rx="0.5" fill="currentColor"/>
-              <rect x="6.5" y="5" width="3" height="9.5" rx="0.5" fill="currentColor"/>
-              <rect x="11.5" y="1.5" width="3" height="13" rx="0.5" fill="currentColor"/>
-            </svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg>
           </div>
-          <div class="help-text"><strong>Stats</strong><span>Tik erop om je statistieken te bekijken.</span></div>
+          <div class="help-text"><strong>Tik op de bel</strong><span>Reeks, groep en uitleg klappen uit. Laat je los, dan verdwijnt de balk na 4 seconden weer.</span></div>
         </div>
       </div>
-      <button type="button" class="stats-close" id="help-close">Sluiten</button>
+      <div class="panel-divider"></div>
+      <h5>Thema</h5>
+      <div class="swatch-row" id="swatch-row"></div>
+      <div id="sound-settings"></div>
+    </div>
+
+    <button type="button" id="bell-btn" aria-label="Menu">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg>
+    </button>
+    <div id="tab-bar" hidden>
+      <button type="button" class="tab-btn" data-panel="reeks">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M8 17v-3M13 17V5M18 17V9"></path></svg>Reeks
+      </button>
+      <button type="button" class="tab-btn" data-panel="groep">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.9"></path></svg>Groep
+      </button>
+      <button type="button" class="tab-btn" data-panel="uitleg">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path></svg>Uitleg
+      </button>
+      <button type="button" class="tab-close" id="tab-close-btn" aria-label="Menu sluiten">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- 18:15 celebration takeover -->
+  <div class="screen" id="celebrate-screen">
+    <div class="ring" style="width:640px;height:640px;"></div>
+    <div class="ring" style="width:460px;height:460px;"></div>
+    <img src="mutua-fides-bottle.png" alt="">
+    <div class="celebrate-time">18:15</div>
+    <div class="celebrate-sub" id="celebrate-sub">Proost.</div>
+    <div class="celebrate-card">
+      <h3 id="celebrate-milestone-title"></h3>
+      <p id="celebrate-milestone-sub"></p>
+      <div class="dot-row thin" id="celebrate-dots"></div>
+      <button type="button" id="celebrate-share">Deel je 18:15</button>
     </div>
   </div>
 
   <!-- Error screen -->
   <div class="screen" id="error-screen">
-    <div class="error-icon">⚠</div>
-    <h1 id="error-title">Er ging iets mis</h1>
+    <div class="error-icon">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"></path><circle cx="12" cy="12" r="10"></circle></svg>
+    </div>
+    <h1 id="error-title">Het kompas zegt niks</h1>
     <p class="sub" id="error-text">Details volgen hier.</p>
     <button class="primary" id="retry-btn">Opnieuw proberen</button>
+    <button type="button" class="error-link" id="error-route-btn">Toch de route openen</button>
   </div>
 
-</div>
-
-<!-- Achievement pop-up for 18:15 streak milestones -->
-<div class="achievement-overlay" id="achievement-overlay" hidden>
-  <div class="achievement-card">
-    <div class="achievement-title" id="achievement-title"></div>
-    <div class="achievement-sub" id="achievement-sub"></div>
-  </div>
 </div>
 
 <!-- Ads-related UI: entirely hidden unless ADS_ENABLED is true (config.js) -->
@@ -702,6 +1011,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script>
 (function () {
@@ -735,6 +1045,15 @@
   function buildNeedle() {
     needle.innerHTML = NEEDLE_BY_THEME[THEMES[themeIndex]] || ARROW_NEEDLE;
   }
+  // Preview color + label for each theme, used by the swatch picker in Uitleg.
+  const THEME_SWATCH = {
+    mutuafides: { bg: "#f5ead8", ring: "#c67139", dot: "#7a8a5e", label: "Mutua" },
+    light: { bg: "#f9f4ed", label: "Licht" },
+    dark: { bg: "#2e2b25", label: "Donker" },
+    classic: { bg: "#ebddc5", label: "Klassiek" },
+    kater: { bg: "#c0b6a5", label: "Kater" },
+    disco: { bg: "linear-gradient(135deg, #c67139, #7a8a5e)", label: "Disco" },
+  };
 
   const app = document.getElementById("app");
   const screens = {
@@ -751,19 +1070,30 @@
   const warningEl = document.getElementById("warning");
   const errorTitle = document.getElementById("error-title");
   const errorText = document.getElementById("error-text");
-  const dial = document.getElementById("dial");
-  const alignmentGlow = document.getElementById("alignment-glow");
-  const alignmentBadge = document.getElementById("alignment-badge");
-  const statsBtn = document.getElementById("stats-btn");
-  const statsOverlay = document.getElementById("stats-overlay");
-  const statsContentEl = document.getElementById("stats-content");
-  const statsCloseBtn = document.getElementById("stats-close");
-  const helpBtn = document.getElementById("help-btn");
-  const helpOverlay = document.getElementById("help-overlay");
-  const helpCloseBtn = document.getElementById("help-close");
-  const achievementOverlay = document.getElementById("achievement-overlay");
-  const achievementTitleEl = document.getElementById("achievement-title");
-  const achievementSubEl = document.getElementById("achievement-sub");
+  const errorRouteBtn = document.getElementById("error-route-btn");
+  const routeBtn = document.getElementById("route-btn");
+  const compassMain = document.getElementById("compass-main");
+  const bellBtn = document.getElementById("bell-btn");
+  const tabBar = document.getElementById("tab-bar");
+  const tabCloseBtn = document.getElementById("tab-close-btn");
+  const tabButtons = Array.from(document.querySelectorAll(".tab-btn"));
+  const panels = {
+    reeks: document.getElementById("panel-reeks"),
+    groep: document.getElementById("panel-groep"),
+    uitleg: document.getElementById("panel-uitleg"),
+  };
+  const reeksContentEl = document.getElementById("reeks-content");
+  const groepContentEl = document.getElementById("groep-content");
+  const groepTitleEl = document.getElementById("groep-title");
+  const swatchRowEl = document.getElementById("swatch-row");
+  const soundSettingsEl = document.getElementById("sound-settings");
+  const soundVibrateToggle = document.getElementById("sound-vibrate-toggle");
+  const celebrateScreen = document.getElementById("celebrate-screen");
+  const celebrateSubEl = document.getElementById("celebrate-sub");
+  const celebrateMilestoneTitleEl = document.getElementById("celebrate-milestone-title");
+  const celebrateMilestoneSubEl = document.getElementById("celebrate-milestone-sub");
+  const celebrateDotsEl = document.getElementById("celebrate-dots");
+  const celebrateShareBtn = document.getElementById("celebrate-share");
   const adsFooter = document.getElementById("ads-footer");
   const consentBanner = document.getElementById("consent-banner");
   const cookieSettingsBtn = document.getElementById("cookie-settings-btn");
@@ -796,52 +1126,174 @@
     document.documentElement.setAttribute("data-theme", THEMES[themeIndex]);
     buildNeedle();
     try { localStorage.setItem(THEME_KEY, THEMES[themeIndex]); } catch (e) { /* ignore */ }
+    renderSwatches();
   }
   needle.addEventListener("click", () => {
     themeIndex = (themeIndex + 1) % THEMES.length;
     applyTheme();
   });
 
-  distanceEl.addEventListener("click", () => {
-    // Text destination so Maps resolves to the actual business listing,
-    // not a bare coordinate pin.
+  function renderSwatches() {
+    swatchRowEl.innerHTML = "";
+    THEMES.forEach((name, i) => {
+      const info = THEME_SWATCH[name] || {};
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "swatch-item";
+      item.dataset.active = String(i === themeIndex);
+      const dot = document.createElement("span");
+      dot.className = "swatch-dot";
+      dot.style.background = info.bg || "#ccc";
+      item.appendChild(dot);
+      const label = document.createElement("span");
+      label.textContent = info.label || name;
+      item.appendChild(label);
+      item.addEventListener("click", () => {
+        themeIndex = i;
+        applyTheme();
+      });
+      swatchRowEl.appendChild(item);
+    });
+  }
+
+  // Text destination so Maps resolves to the actual business listing,
+  // not a bare coordinate pin.
+  function navigateToMaps() {
     const destination = encodeURIComponent("Vindicat atque Polit, Groningen");
     let url = `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=driving`;
     if (currentPos) {
       url = `https://www.google.com/maps/dir/?api=1&origin=${currentPos.lat},${currentPos.lon}&destination=${destination}&travelmode=driving`;
     }
     window.location.href = url;
+  }
+  distanceEl.addEventListener("click", navigateToMaps);
+  routeBtn.addEventListener("click", navigateToMaps);
+  errorRouteBtn.addEventListener("click", navigateToMaps);
+
+  // --- Bell menu: bell -> tab bar (auto-collapses after 4s idle) -> panel ---
+  let bellCollapseTimer = null;
+  let activePanel = null;
+  function scheduleBellCollapse() {
+    clearTimeout(bellCollapseTimer);
+    bellCollapseTimer = setTimeout(collapseBell, 4000);
+  }
+  function expandBell() {
+    bellBtn.hidden = true;
+    tabBar.hidden = false;
+    scheduleBellCollapse();
+  }
+  function collapseBell() {
+    clearTimeout(bellCollapseTimer);
+    if (activePanel) return; // stay expanded while a panel is open
+    tabBar.hidden = true;
+    bellBtn.hidden = false;
+  }
+  function openPanel(name) {
+    activePanel = name;
+    clearTimeout(bellCollapseTimer);
+    compassMain.hidden = true;
+    Object.entries(panels).forEach(([key, el]) => { el.hidden = key !== name; });
+    tabButtons.forEach(btn => { btn.dataset.active = String(btn.dataset.panel === name); });
+    if (name === "reeks") renderReeksPanel();
+    if (name === "groep") renderGroepPanel();
+    if (name === "uitleg") renderSoundSettings();
+  }
+  function closePanel() {
+    activePanel = null;
+    compassMain.hidden = false;
+    Object.values(panels).forEach(el => { el.hidden = true; });
+    tabButtons.forEach(btn => { btn.dataset.active = "false"; });
+    collapseBell();
+  }
+  bellBtn.addEventListener("click", expandBell);
+  tabCloseBtn.addEventListener("click", closePanel);
+  tabButtons.forEach(btn => {
+    btn.addEventListener("click", () => openPanel(btn.dataset.panel));
+  });
+  document.querySelectorAll("[data-close-panel]").forEach(btn => {
+    btn.addEventListener("click", closePanel);
   });
 
-  function buildDial() {
-    dial.innerHTML = "";
-    const tickWrap = document.createElement("div");
-    tickWrap.className = "tick-wrap";
-    dial.appendChild(tickWrap);
-    for (let deg = 0; deg < 360; deg += 30) {
-      const spin = document.createElement("div");
-      spin.className = "tick-wrap";
-      spin.style.transform = `rotate(${deg}deg)`;
-      const tick = document.createElement("div");
-      tick.className = "tick";
-      spin.appendChild(tick);
-      tickWrap.appendChild(spin);
-    }
-    const labels = [["N", 0], ["E", 90], ["S", 180], ["W", 270]];
-    labels.forEach(([txt, deg]) => {
-      const el = document.createElement("div");
-      el.className = "cardinal";
-      el.textContent = txt;
-      const rad = (deg - 90) * Math.PI / 180;
-      const r = 44; // percent
-      const x = 50 + r * Math.cos(rad);
-      const y = 50 + r * Math.sin(rad);
-      el.style.left = `calc(${x}% - 8px)`;
-      el.style.top = `calc(${y}% - 8px)`;
-      dial.appendChild(el);
+  // --- Sound & vibration ---
+  const SOUND_KEY = "pv-sound-enabled";
+  const VIBRATE_KEY = "pv-vibrate-enabled";
+  function loadFlag(key) {
+    try {
+      const v = localStorage.getItem(key);
+      return v === null ? true : v === "1";
+    } catch (e) { return true; }
+  }
+  function saveFlag(key, value) {
+    try { localStorage.setItem(key, value ? "1" : "0"); } catch (e) { /* ignore */ }
+  }
+  let soundEnabled = loadFlag(SOUND_KEY);
+  let vibrateEnabled = loadFlag(VIBRATE_KEY);
+
+  function vibrate(pattern) {
+    if (vibrateEnabled && typeof navigator.vibrate === "function") navigator.vibrate(pattern);
+  }
+
+  let audioCtx = null;
+  function playClink() {
+    if (!soundEnabled) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const now = audioCtx.currentTime;
+      [880, 1320].forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.18, now + 0.01 + i * 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.6 + i * 0.05);
+        osc.connect(gain).connect(audioCtx.destination);
+        osc.start(now + i * 0.05);
+        osc.stop(now + 0.7 + i * 0.05);
+      });
+    } catch (e) { /* Web Audio unavailable — silently skip */ }
+  }
+
+  function updateSoundVibrateToggleUI() {
+    const on = soundEnabled && vibrateEnabled;
+    soundVibrateToggle.dataset.on = String(on);
+  }
+  soundVibrateToggle.addEventListener("click", () => {
+    const next = !(soundEnabled && vibrateEnabled);
+    soundEnabled = next;
+    vibrateEnabled = next;
+    saveFlag(SOUND_KEY, next);
+    saveFlag(VIBRATE_KEY, next);
+    updateSoundVibrateToggleUI();
+    renderSoundSettings();
+  });
+  updateSoundVibrateToggleUI();
+
+  function renderSoundSettings() {
+    soundSettingsEl.innerHTML = `
+      <h5>Geluid &amp; trillen</h5>
+      <div class="setting-row">
+        <span class="setting-label">Klink bij 18:15</span>
+        <button type="button" class="toggle-switch" id="sound-toggle" data-on="${soundEnabled}"></button>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Tril bij vergrendeling</span>
+        <button type="button" class="toggle-switch" id="vibrate-toggle" data-on="${vibrateEnabled}"></button>
+      </div>
+    `;
+    document.getElementById("sound-toggle").addEventListener("click", () => {
+      soundEnabled = !soundEnabled;
+      saveFlag(SOUND_KEY, soundEnabled);
+      updateSoundVibrateToggleUI();
+      renderSoundSettings();
+    });
+    document.getElementById("vibrate-toggle").addEventListener("click", () => {
+      vibrateEnabled = !vibrateEnabled;
+      saveFlag(VIBRATE_KEY, vibrateEnabled);
+      updateSoundVibrateToggleUI();
+      renderSoundSettings();
     });
   }
-  buildDial();
 
   function toRad(d) { return d * Math.PI / 180; }
   function toDeg(r) { return r * 180 / Math.PI; }
@@ -904,21 +1356,6 @@
     setTimeout(() => container.remove(), 4200);
   }
 
-  let achievementTimer = null;
-  function hideAchievement() {
-    achievementOverlay.hidden = true;
-    if (achievementTimer) { clearTimeout(achievementTimer); achievementTimer = null; }
-  }
-  function showAchievement(title, sub) {
-    achievementTitleEl.textContent = title;
-    achievementSubEl.textContent = sub;
-    achievementOverlay.hidden = false;
-    fireConfetti();
-    if (achievementTimer) clearTimeout(achievementTimer);
-    achievementTimer = setTimeout(hideAchievement, 4000);
-  }
-  achievementOverlay.addEventListener("click", hideAchievement);
-
   // --- 18:15 witness tracking: how many days, and how many in a row ---
   const WITNESS_KEY = "pv-witness";
   function dateStr(d) {
@@ -954,47 +1391,39 @@
     if (streak >= 3) return "Lekker bezig.";
     return "Net begonnen!";
   }
-  function renderStatsOverlay() {
+  function dotRow(count, total) {
+    let html = "";
+    for (let i = 0; i < total; i++) {
+      html += `<span class="dot" data-filled="${i < count}"></span>`;
+    }
+    return html;
+  }
+
+  function renderReeksPanel() {
     const state = loadWitness();
     if (!state.total) {
-      statsContentEl.innerHTML = `
-        <div class="stats-empty">Je hebt 18:15 nog niet meegemaakt.</div>
-        <div class="stats-empty">Kom vanavond om 18:15 terug!</div>
+      reeksContentEl.innerHTML = `
+        <div class="empty-note">Je hebt 18:15 nog niet meegemaakt.<br>Kom vanavond om 18:15 terug!</div>
       `;
       return;
     }
     const dagen = state.streak === 1 ? "dag" : "dagen";
     const best = state.bestStreak || state.streak;
-    statsContentEl.innerHTML = `
-      <div class="stats-hero-number">${state.streak}</div>
-      <div class="stats-hero-label">${dagen} op rij</div>
-      <div class="stats-hero-caption">${streakCaption(state.streak)}</div>
-      <div class="stats-grid">
-        <div class="stats-tile">
-          <div class="stats-tile-value">${state.total}×</div>
-          <div class="stats-tile-label">totaal</div>
-        </div>
-        <div class="stats-tile">
-          <div class="stats-tile-value">${best}</div>
-          <div class="stats-tile-label">beste streak</div>
-        </div>
+    const rank = groupState.groupId ? formatRank(groupMemberRank()) : "—";
+    reeksContentEl.innerHTML = `
+      <div class="reeks-hero">
+        <div class="reeks-hero-number">${state.streak}</div>
+        <div class="reeks-hero-caption">${dagen} op rij bij 18:15 — ${streakCaption(state.streak)}</div>
+        <div class="dot-row">${dotRow(Math.min(state.streak, 9), 9)}</div>
+      </div>
+      <div class="tile-row">
+        <div class="tile"><div class="tile-value">${state.total}×</div><div class="tile-label">totaal gehaald</div></div>
+        <div class="tile"><div class="tile-value">${best}</div><div class="tile-label">beste reeks</div></div>
+        <div class="tile sage"><div class="tile-value">${rank}</div><div class="tile-label">plek in groep</div></div>
       </div>
     `;
   }
-  statsBtn.addEventListener("click", () => {
-    renderStatsOverlay();
-    statsOverlay.hidden = false;
-  });
-  statsCloseBtn.addEventListener("click", () => { statsOverlay.hidden = true; });
-  statsOverlay.addEventListener("click", (e) => {
-    if (e.target === statsOverlay) statsOverlay.hidden = true;
-  });
 
-  helpBtn.addEventListener("click", () => { helpOverlay.hidden = false; });
-  helpCloseBtn.addEventListener("click", () => { helpOverlay.hidden = true; });
-  helpOverlay.addEventListener("click", (e) => {
-    if (e.target === helpOverlay) helpOverlay.hidden = true;
-  });
   function recordWitness() {
     const today = new Date();
     const todayKey = dateStr(today);
@@ -1010,14 +1439,49 @@
     state.lastDate = todayKey;
     state.bestStreak = Math.max(state.bestStreak || 0, state.streak);
     saveWitness(state);
+    syncGroupStats(state);
 
-    if (isMilestone(state.streak) && state.streak > (state.lastCelebratedStreak || 0)) {
+    const milestoneHit = isMilestone(state.streak) && state.streak > (state.lastCelebratedStreak || 0);
+    if (milestoneHit) {
       state.lastCelebratedStreak = state.streak;
       saveWitness(state);
-      const msg = milestoneMessage(state.streak);
-      showAchievement(msg.title, msg.sub);
     }
+    showCelebration(state, milestoneHit);
   }
+
+  function showCelebration(state, milestoneHit) {
+    celebrateSubEl.textContent = `Proost. Dag ${state.streak} op rij.`;
+    if (milestoneHit) {
+      const msg = milestoneMessage(state.streak);
+      celebrateMilestoneTitleEl.textContent = `Mijlpaal: ${msg.title}`;
+      celebrateMilestoneSubEl.textContent = msg.sub;
+    } else {
+      celebrateMilestoneTitleEl.textContent = `${state.streak} op rij`;
+      celebrateMilestoneSubEl.textContent = streakCaption(state.streak);
+    }
+    const leader = groupState.groupId ? groupLeaderAheadMessage(state) : null;
+    if (leader) celebrateMilestoneSubEl.textContent += ` ${leader}`;
+    celebrateDotsEl.innerHTML = dotRow(Math.min(state.streak, 9), 9);
+    celebrateScreen.classList.add("active");
+    playClink();
+    setTimeout(() => celebrateScreen.classList.remove("active"), 6000);
+  }
+  celebrateScreen.addEventListener("click", (e) => {
+    if (e.target === celebrateScreen) celebrateScreen.classList.remove("active");
+  });
+  celebrateShareBtn.addEventListener("click", async () => {
+    const state = loadWitness();
+    const text = `Ik heb 18:15 net weer gehaald bij Pandvinder — ${state.streak} op rij!`;
+    if (navigator.share) {
+      try { await navigator.share({ text }); } catch (e) { /* user cancelled — ignore */ }
+    } else {
+      try {
+        await navigator.clipboard.writeText(text);
+        celebrateShareBtn.textContent = "Gekopieerd!";
+        setTimeout(() => { celebrateShareBtn.textContent = "Deel je 18:15"; }, 2000);
+      } catch (e) { /* clipboard unavailable — ignore */ }
+    }
+  });
 
   // Fires exactly once per day, the moment the countdown hits 18:15.
   let confettiFiredThisCycle = false;
@@ -1036,10 +1500,9 @@
 
     countdownEl.classList.toggle("countdown-urgent", totalSec <= 60);
 
-    const canVibrate = typeof navigator.vibrate === "function";
     if (totalSec > 0 && totalSec <= 5) {
       pulseCountdown();
-      if (canVibrate) navigator.vibrate(50);
+      vibrate(50);
     } else if (totalSec > 0 && totalSec <= 30 && totalSec % 10 === 0) {
       pulseCountdown();
     }
@@ -1049,7 +1512,7 @@
         confettiFiredThisCycle = true;
         fireConfetti();
         recordWitness();
-        if (canVibrate) navigator.vibrate([120, 60, 120, 60, 240]);
+        vibrate([120, 60, 120, 60, 240]);
       }
     } else {
       confettiFiredThisCycle = false;
@@ -1096,23 +1559,16 @@
     needle.style.transform = `rotate(${displayedRotation}deg)`;
   }
 
-  // Nudge the user toward facing Vindicat: the screen washes green as the
-  // needle's deviation from "straight ahead" shrinks, with a short buzz
-  // the moment you swing into a tight lock-on.
-  const ALIGNMENT_THRESHOLD_DEG = 45;
+  // Nudge the user toward facing Vindicat: the screen swaps to sage the
+  // moment the needle's deviation from "straight ahead" locks in, with a
+  // short buzz on that transition.
   const ALIGNMENT_LOCK_DEG = 8;
-  const ALIGNMENT_MAX_OPACITY = 0.4;
   let wasAligned = false;
-  function updateAlignmentGlow(relativeDeg) {
+  function updateAlignment(relativeDeg) {
     const deviation = Math.abs(angleDiff(0, relativeDeg));
-    const opacity = Math.max(0, 1 - deviation / ALIGNMENT_THRESHOLD_DEG) * ALIGNMENT_MAX_OPACITY;
-    alignmentGlow.style.opacity = opacity.toFixed(2);
-
     const aligned = deviation <= ALIGNMENT_LOCK_DEG;
-    alignmentBadge.hidden = !aligned;
-    if (aligned && !wasAligned && typeof navigator.vibrate === "function") {
-      navigator.vibrate(60);
-    }
+    app.setAttribute("data-aligned", String(aligned));
+    if (aligned && !wasAligned) vibrate(60);
     wasAligned = aligned;
   }
 
@@ -1136,15 +1592,15 @@
           ? "Kompas kalibreren — loop een paar stappen met je telefoon in de hand."
           : "Wachten op kompas…";
       }
-      alignmentGlow.style.opacity = "0";
-      alignmentBadge.hidden = true;
+      app.setAttribute("data-aligned", "false");
+      wasAligned = false;
       return;
     }
 
     const bearing = bearingTo(currentPos, TARGET);
     const relative = (bearing - currentHeading + 360) % 360;
     setNeedleRotation(relative);
-    updateAlignmentGlow(relative);
+    updateAlignment(relative);
 
     if (!textDue) return;
     const staleGPS = now - lastFixTime > 15000;
@@ -1360,8 +1816,9 @@
     calibrationOffset = null;
     compassMode = "unknown";
     wasAligned = false;
-    alignmentGlow.style.opacity = "0";
-    alignmentBadge.hidden = true;
+    app.setAttribute("data-aligned", "false");
+    activePanel = null;
+    closePanel();
     showScreen("start");
   });
 
@@ -1416,8 +1873,212 @@
     if (ADS_ENABLED) consentBanner.hidden = false;
   });
 
+  // --- Groep: optional shared leaderboard via Supabase. No login — a
+  // silent anonymous session gives each device a stable identity. Every
+  // function here is a safe no-op until config.js has real
+  // SUPABASE_URL / SUPABASE_ANON_KEY values (Groep panel shows a
+  // "not set up yet" placeholder in the meantime).
+  function lsGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+  function lsSet(key, val) { try { localStorage.setItem(key, val); } catch (e) { /* ignore */ } }
+
+  const GROUP_ID_KEY = "pv-group-id";
+  const supabaseConfigured = typeof SUPABASE_URL === "string" && SUPABASE_URL &&
+                              typeof SUPABASE_ANON_KEY === "string" && SUPABASE_ANON_KEY &&
+                              typeof window.supabase !== "undefined";
+  const sb = supabaseConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+  const groupState = { userId: null, groupId: lsGet(GROUP_ID_KEY), members: [] };
+
+  function initials(name) {
+    return name.trim().split(/\s+/).slice(0, 2).map(w => w[0].toUpperCase()).join("") || "?";
+  }
+  function formatRank(rank) { return rank ? `#${rank}` : "—"; }
+  function groupMemberRank() {
+    const state = loadWitness();
+    const sorted = [...groupState.members].sort((a, b) => b.streak - a.streak);
+    const idx = sorted.findIndex(m => m.user_id === groupState.userId);
+    if (idx === -1) return sorted.filter(m => m.streak > state.streak).length + 1;
+    return idx + 1;
+  }
+  function groupLeaderAheadMessage(state) {
+    const ahead = groupState.members
+      .filter(m => m.user_id !== groupState.userId && m.streak > state.streak)
+      .sort((a, b) => b.streak - a.streak)[0];
+    if (!ahead) return null;
+    return `${ahead.display_name} staat op ${ahead.streak}. Nog even doorbijten.`;
+  }
+
+  async function ensureAnonSession() {
+    if (!sb) return;
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) {
+        groupState.userId = session.user.id;
+      } else {
+        const { data, error } = await sb.auth.signInAnonymously();
+        if (error) throw error;
+        groupState.userId = data.user.id;
+      }
+      if (groupState.groupId) await fetchGroupMembers();
+    } catch (e) { /* offline or misconfigured — Groep just stays empty */ }
+  }
+
+  async function fetchGroupMembers() {
+    if (!sb || !groupState.groupId) return;
+    try {
+      const { data, error } = await sb
+        .from("group_members")
+        .select("user_id, streak, best_streak, total, profiles(display_name, initials)")
+        .eq("group_id", groupState.groupId);
+      if (error) throw error;
+      groupState.members = (data || []).map(row => ({
+        user_id: row.user_id,
+        streak: row.streak,
+        best_streak: row.best_streak,
+        total: row.total,
+        display_name: row.profiles ? row.profiles.display_name : "?",
+        initials: row.profiles ? row.profiles.initials : "?",
+      }));
+      if (activePanel === "groep") renderGroepPanel();
+      if (activePanel === "reeks") renderReeksPanel();
+    } catch (e) { /* ignore — leaderboard just won't update this time */ }
+  }
+
+  async function ensureProfile() {
+    if (!sb || !groupState.userId) return false;
+    try {
+      const { data } = await sb.from("profiles").select("id").eq("id", groupState.userId).maybeSingle();
+      if (data) return true;
+      const name = window.prompt("Hoe heet je? (zichtbaar voor je groep)");
+      if (!name || !name.trim()) return false;
+      const { error } = await sb.from("profiles").insert({
+        id: groupState.userId,
+        display_name: name.trim(),
+        initials: initials(name),
+      });
+      if (error) throw error;
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async function createGroupFlow() {
+    if (!(await ensureProfile())) return;
+    const name = window.prompt("Naam voor je groep?");
+    if (!name || !name.trim()) return;
+    try {
+      const { data: group, error } = await sb.from("groups")
+        .insert({ name: name.trim(), created_by: groupState.userId })
+        .select()
+        .single();
+      if (error) throw error;
+      const state = loadWitness();
+      await sb.from("group_members").insert({
+        group_id: group.id,
+        user_id: groupState.userId,
+        streak: state.streak,
+        best_streak: state.bestStreak,
+        total: state.total,
+      });
+      groupState.groupId = group.id;
+      lsSet(GROUP_ID_KEY, group.id);
+      await fetchGroupMembers();
+      renderGroepPanel();
+    } catch (e) { /* ignore — user can try again */ }
+  }
+
+  async function joinGroupFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const joinId = params.get("join");
+    if (!joinId || !sb) return;
+    history.replaceState(null, "", window.location.pathname);
+    if (groupState.groupId === joinId) return;
+    if (!(await ensureProfile())) return;
+    try {
+      const state = loadWitness();
+      const { error } = await sb.from("group_members").insert({
+        group_id: joinId,
+        user_id: groupState.userId,
+        streak: state.streak,
+        best_streak: state.bestStreak,
+        total: state.total,
+      });
+      if (error) throw error;
+      groupState.groupId = joinId;
+      lsSet(GROUP_ID_KEY, joinId);
+      await fetchGroupMembers();
+      renderGroepPanel();
+    } catch (e) { /* invite link invalid/expired, or already a member elsewhere */ }
+  }
+
+  function syncGroupStats(state) {
+    if (!sb || !groupState.groupId || !groupState.userId) return;
+    sb.from("group_members").update({
+      streak: state.streak,
+      best_streak: state.bestStreak,
+      total: state.total,
+    }).eq("group_id", groupState.groupId).eq("user_id", groupState.userId)
+      .then(() => {}, () => {}); // fire-and-forget
+  }
+
+  async function inviteFriend() {
+    const url = `${window.location.origin}${window.location.pathname}?join=${groupState.groupId}`;
+    if (navigator.share) {
+      try { await navigator.share({ text: "Doe mee met onze 18:15-groep op Pandvinder", url }); return; } catch (e) { /* fall through to copy */ }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      window.alert("Uitnodigingslink gekopieerd!");
+    } catch (e) { window.prompt("Kopieer deze link:", url); }
+  }
+
+  function renderGroepPanel() {
+    if (!supabaseConfigured) {
+      groepContentEl.innerHTML = `<div class="empty-note">De groepsfunctie is nog niet ingesteld.</div>`;
+      return;
+    }
+    if (!groupState.groupId) {
+      groepContentEl.innerHTML = `<div class="empty-note">Nog geen groep. Start er een, of open een uitnodigingslink van een vriend.</div>`;
+      groepTitleEl.textContent = "Jouw groep";
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "btn-outline";
+      btn.textContent = "Nieuwe groep starten";
+      btn.addEventListener("click", createGroupFlow);
+      groepContentEl.appendChild(btn);
+      return;
+    }
+    const sorted = [...groupState.members].sort((a, b) => b.streak - a.streak);
+    const total = sorted.reduce((sum, m) => sum + (m.total || 0), 0);
+    const rows = sorted.map((m, i) => `
+      <div class="member-row ${m.user_id === groupState.userId ? "you" : ""}">
+        <span class="member-rank">${i + 1}</span>
+        <span class="member-avatar">${m.initials}</span>
+        <div class="member-info">
+          <div class="member-name">${m.user_id === groupState.userId ? "Jij" : m.display_name}</div>
+          <div class="member-sub">beste reeks ${m.best_streak}</div>
+        </div>
+        <span class="member-streak">${m.streak}</span>
+      </div>
+    `).join("");
+    groepContentEl.innerHTML = `
+      ${rows || '<div class="empty-note">Nog geen leden.</div>'}
+      <div class="group-total"><strong>Samen ${total} keer</strong>De groep haalde 18:15 in totaal ${total} keer.</div>
+    `;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn-outline";
+    btn.textContent = "Vriend uitnodigen";
+    btn.addEventListener("click", inviteFriend);
+    groepContentEl.appendChild(btn);
+  }
+
   applyTheme();
   initAds();
+  if (supabaseConfigured) {
+    ensureAnonSession().then(joinGroupFromUrl);
+  }
 })();
 </script>
 </body>
