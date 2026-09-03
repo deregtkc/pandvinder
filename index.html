@@ -573,6 +573,55 @@
     font-size: 1.05rem;
     margin-bottom: 3px;
   }
+  .group-switcher {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    margin-bottom: 14px;
+  }
+  .group-pill {
+    flex: none;
+    background: var(--dial);
+    border: none;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--fg);
+    white-space: nowrap;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .group-pill[data-active="true"] { background: var(--accent); color: #fff; }
+  .group-pill.add {
+    background: none;
+    border: 1px dashed rgba(32, 30, 29, 0.3);
+    color: var(--muted);
+  }
+  .group-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+  .group-actions .btn-outline {
+    margin-top: 0;
+    align-self: auto;
+    flex: 1;
+    text-align: center;
+  }
+  .leave-link {
+    display: block;
+    margin-top: 14px;
+    background: none;
+    border: none;
+    color: var(--accent-active);
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 0;
+  }
   .btn-outline {
     align-self: flex-start;
     background: none;
@@ -974,6 +1023,7 @@
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
         </button>
       </div>
+      <div class="group-switcher" id="group-switcher" hidden></div>
       <div id="groep-content"></div>
     </div>
 
@@ -1009,6 +1059,7 @@
       <h5>Thema</h5>
       <div class="swatch-row" id="swatch-row"></div>
       <div id="sound-settings"></div>
+      <div id="profile-settings"></div>
     </div>
 
     <button type="button" id="bell-btn" aria-label="Menu">
@@ -1172,8 +1223,10 @@
   const reeksContentEl = document.getElementById("reeks-content");
   const groepContentEl = document.getElementById("groep-content");
   const groepTitleEl = document.getElementById("groep-title");
+  const groupSwitcherEl = document.getElementById("group-switcher");
   const swatchRowEl = document.getElementById("swatch-row");
   const soundSettingsEl = document.getElementById("sound-settings");
+  const profileSettingsEl = document.getElementById("profile-settings");
   const soundVibrateToggle = document.getElementById("sound-vibrate-toggle");
   const celebrateScreen = document.getElementById("celebrate-screen");
   const celebrateSubEl = document.getElementById("celebrate-sub");
@@ -1293,7 +1346,7 @@
     tabButtons.forEach(btn => { btn.dataset.active = String(btn.dataset.panel === name); });
     if (name === "reeks") renderReeksPanel();
     if (name === "groep") renderGroepPanel();
-    if (name === "uitleg") renderSoundSettings();
+    if (name === "uitleg") { renderSoundSettings(); renderProfileSetting(); }
   }
   function closePanel() {
     activePanel = null;
@@ -1506,7 +1559,7 @@
     }
     const dagen = state.streak === 1 ? "dag" : "dagen";
     const best = state.bestStreak || state.streak;
-    const rank = groupState.groupId ? formatRank(groupMemberRank()) : "—";
+    const rank = groupState.activeGroupId ? formatRank(groupMemberRank()) : "—";
     reeksContentEl.innerHTML = `
       <div class="reeks-hero">
         <div class="reeks-hero-number">${state.streak}</div>
@@ -1556,7 +1609,7 @@
       celebrateMilestoneTitleEl.textContent = `${state.streak} op rij`;
       celebrateMilestoneSubEl.textContent = streakCaption(state.streak);
     }
-    const leader = groupState.groupId ? groupLeaderAheadMessage(state) : null;
+    const leader = groupState.activeGroupId ? groupLeaderAheadMessage(state) : null;
     if (leader) celebrateMilestoneSubEl.textContent += ` ${leader}`;
     celebrateDotsEl.innerHTML = dotRow(Math.min(state.streak, 9), 9);
     celebrateScreen.classList.add("active");
@@ -2023,18 +2076,30 @@
   function lsGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
   function lsSet(key, val) { try { localStorage.setItem(key, val); } catch (e) { /* ignore */ } }
 
-  const GROUP_ID_KEY = "pv-group-id";
+  const ACTIVE_GROUP_KEY = "pv-active-group-id";
   const supabaseConfigured = typeof SUPABASE_URL === "string" && SUPABASE_URL &&
                               typeof SUPABASE_ANON_KEY === "string" && SUPABASE_ANON_KEY &&
                               typeof window.supabase !== "undefined";
   const sb = supabaseConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
-  const groupState = { userId: null, groupId: lsGet(GROUP_ID_KEY), members: [] };
+  // A person can belong to several groups; membership itself lives in the
+  // database (group_members), not localStorage — only which one is
+  // currently being viewed (activeGroupId) is remembered locally.
+  const groupState = {
+    userId: null,
+    myProfile: null,      // { display_name, initials } | null
+    myGroups: [],          // [{ id, name, created_by }]
+    activeGroupId: lsGet(ACTIVE_GROUP_KEY),
+    members: [],           // members of the active group
+  };
 
   function initials(name) {
     return name.trim().split(/\s+/).slice(0, 2).map(w => w[0].toUpperCase()).join("") || "?";
   }
   function formatRank(rank) { return rank ? `#${rank}` : "—"; }
+  function activeGroup() {
+    return groupState.myGroups.find(g => g.id === groupState.activeGroupId) || null;
+  }
   function groupMemberRank() {
     const state = loadWitness();
     const sorted = [...groupState.members].sort((a, b) => b.streak - a.streak);
@@ -2061,17 +2126,48 @@
         if (error) throw error;
         groupState.userId = data.user.id;
       }
-      if (groupState.groupId) await fetchGroupMembers();
+      await fetchMyProfile();
+      await fetchMyGroups();
     } catch (e) { /* offline or misconfigured — Groep just stays empty */ }
   }
 
+  async function fetchMyProfile() {
+    if (!sb || !groupState.userId) return;
+    try {
+      const { data } = await sb.from("profiles").select("display_name, initials").eq("id", groupState.userId).maybeSingle();
+      groupState.myProfile = data || null;
+    } catch (e) { /* ignore */ }
+  }
+
+  async function fetchMyGroups() {
+    if (!sb || !groupState.userId) return;
+    try {
+      const { data, error } = await sb
+        .from("group_members")
+        .select("group_id, groups(id, name, created_by)")
+        .eq("user_id", groupState.userId);
+      if (error) throw error;
+      groupState.myGroups = (data || [])
+        .filter(row => row.groups)
+        .map(row => ({ id: row.groups.id, name: row.groups.name, created_by: row.groups.created_by }));
+      if (!groupState.myGroups.some(g => g.id === groupState.activeGroupId)) {
+        groupState.activeGroupId = groupState.myGroups[0] ? groupState.myGroups[0].id : null;
+        lsSet(ACTIVE_GROUP_KEY, groupState.activeGroupId || "");
+      }
+      if (groupState.activeGroupId) await fetchGroupMembers();
+      else groupState.members = [];
+      if (activePanel === "groep") renderGroepPanel();
+      if (activePanel === "reeks") renderReeksPanel();
+    } catch (e) { /* ignore — Groep just won't update this time */ }
+  }
+
   async function fetchGroupMembers() {
-    if (!sb || !groupState.groupId) return;
+    if (!sb || !groupState.activeGroupId) return;
     try {
       const { data, error } = await sb
         .from("group_members")
         .select("user_id, streak, best_streak, total, profiles(display_name, initials)")
-        .eq("group_id", groupState.groupId);
+        .eq("group_id", groupState.activeGroupId);
       if (error) throw error;
       groupState.members = (data || []).map(row => ({
         user_id: row.user_id,
@@ -2088,21 +2184,35 @@
 
   async function ensureProfile() {
     if (!sb || !groupState.userId) return false;
+    if (groupState.myProfile) return true;
     try {
-      const { data } = await sb.from("profiles").select("id").eq("id", groupState.userId).maybeSingle();
-      if (data) return true;
       const name = await showPrompt("Hoe heet je?", { message: "Zichtbaar voor je groepsgenoten.", placeholder: "Je naam" });
       if (!name) return false;
       const { error } = await sb.from("profiles").insert({
         id: groupState.userId,
-        display_name: name.trim(),
+        display_name: name,
         initials: initials(name),
       });
       if (error) throw error;
+      groupState.myProfile = { display_name: name, initials: initials(name) };
       return true;
     } catch (e) {
       return false;
     }
+  }
+
+  async function changeNameFlow() {
+    if (!sb || !groupState.userId) return;
+    const current = groupState.myProfile ? groupState.myProfile.display_name : "";
+    const name = await showPrompt("Nieuwe naam", { message: "Zichtbaar voor je groepsgenoten.", placeholder: "Je naam", value: current });
+    if (!name || name === current) return;
+    try {
+      const { error } = await sb.from("profiles").upsert({ id: groupState.userId, display_name: name, initials: initials(name) });
+      if (error) throw error;
+      groupState.myProfile = { display_name: name, initials: initials(name) };
+      renderProfileSetting();
+      if (groupState.activeGroupId) await fetchGroupMembers();
+    } catch (e) { /* ignore — user can try again */ }
   }
 
   async function createGroupFlow() {
@@ -2111,7 +2221,7 @@
     if (!name) return;
     try {
       const { data: group, error } = await sb.from("groups")
-        .insert({ name: name.trim(), created_by: groupState.userId })
+        .insert({ name, created_by: groupState.userId })
         .select()
         .single();
       if (error) throw error;
@@ -2123,8 +2233,9 @@
         best_streak: state.bestStreak,
         total: state.total,
       });
-      groupState.groupId = group.id;
-      lsSet(GROUP_ID_KEY, group.id);
+      groupState.myGroups.push({ id: group.id, name: group.name, created_by: group.created_by });
+      groupState.activeGroupId = group.id;
+      lsSet(ACTIVE_GROUP_KEY, group.id);
       await fetchGroupMembers();
       renderGroepPanel();
     } catch (e) { /* ignore — user can try again */ }
@@ -2135,7 +2246,12 @@
     const joinId = params.get("join");
     if (!joinId || !sb) return;
     history.replaceState(null, "", window.location.pathname);
-    if (groupState.groupId === joinId) return;
+    if (groupState.myGroups.some(g => g.id === joinId)) {
+      groupState.activeGroupId = joinId;
+      lsSet(ACTIVE_GROUP_KEY, joinId);
+      await fetchGroupMembers();
+      return;
+    }
     if (!(await ensureProfile())) return;
     try {
       const state = loadWitness();
@@ -2147,25 +2263,59 @@
         total: state.total,
       });
       if (error) throw error;
-      groupState.groupId = joinId;
-      lsSet(GROUP_ID_KEY, joinId);
+      await fetchMyGroups();
+      groupState.activeGroupId = joinId;
+      lsSet(ACTIVE_GROUP_KEY, joinId);
       await fetchGroupMembers();
       renderGroepPanel();
     } catch (e) { /* invite link invalid/expired, or already a member elsewhere */ }
   }
 
+  async function renameGroupFlow() {
+    const group = activeGroup();
+    if (!group || group.created_by !== groupState.userId) return;
+    const name = await showPrompt("Naam wijzigen", { value: group.name, placeholder: "Groepsnaam" });
+    if (!name || name === group.name) return;
+    try {
+      const { error } = await sb.from("groups").update({ name }).eq("id", group.id);
+      if (error) throw error;
+      group.name = name;
+      renderGroepPanel();
+    } catch (e) { /* ignore — user can try again */ }
+  }
+
+  async function leaveGroupFlow() {
+    const group = activeGroup();
+    if (!group) return;
+    try {
+      const { error } = await sb.from("group_members").delete().eq("group_id", group.id).eq("user_id", groupState.userId);
+      if (error) throw error;
+      groupState.myGroups = groupState.myGroups.filter(g => g.id !== group.id);
+      groupState.activeGroupId = groupState.myGroups[0] ? groupState.myGroups[0].id : null;
+      lsSet(ACTIVE_GROUP_KEY, groupState.activeGroupId || "");
+      groupState.members = [];
+      if (groupState.activeGroupId) await fetchGroupMembers();
+      renderGroepPanel();
+    } catch (e) { /* ignore — user can try again */ }
+  }
+
+  // Every group this person is in gets the updated numbers, not just the
+  // one currently being viewed.
   function syncGroupStats(state) {
-    if (!sb || !groupState.groupId || !groupState.userId) return;
-    sb.from("group_members").update({
-      streak: state.streak,
-      best_streak: state.bestStreak,
-      total: state.total,
-    }).eq("group_id", groupState.groupId).eq("user_id", groupState.userId)
-      .then(() => {}, () => {}); // fire-and-forget
+    if (!sb || !groupState.userId || !groupState.myGroups.length) return;
+    groupState.myGroups.forEach(g => {
+      sb.from("group_members").update({
+        streak: state.streak,
+        best_streak: state.bestStreak,
+        total: state.total,
+      }).eq("group_id", g.id).eq("user_id", groupState.userId)
+        .then(() => {}, () => {}); // fire-and-forget
+    });
   }
 
   async function inviteFriend() {
-    const url = `${window.location.origin}${window.location.pathname}?join=${groupState.groupId}`;
+    if (!groupState.activeGroupId) return;
+    const url = `${window.location.origin}${window.location.pathname}?join=${groupState.activeGroupId}`;
     if (navigator.share) {
       try { await navigator.share({ text: "Doe mee met onze 18:15-groep op Pandvinder", url }); return; } catch (e) { /* fall through to copy */ }
     }
@@ -2177,14 +2327,44 @@
     }
   }
 
+  function switchActiveGroup(id) {
+    if (id === groupState.activeGroupId) return;
+    groupState.activeGroupId = id;
+    lsSet(ACTIVE_GROUP_KEY, id);
+    groupState.members = [];
+    renderGroepPanel();
+    fetchGroupMembers();
+  }
+
+  function renderGroupSwitcher() {
+    groupSwitcherEl.innerHTML = "";
+    groupState.myGroups.forEach(g => {
+      const pill = document.createElement("button");
+      pill.type = "button";
+      pill.className = "group-pill";
+      pill.dataset.active = String(g.id === groupState.activeGroupId);
+      pill.textContent = g.name;
+      pill.addEventListener("click", () => switchActiveGroup(g.id));
+      groupSwitcherEl.appendChild(pill);
+    });
+    const addBtn = document.createElement("button");
+    addBtn.type = "button";
+    addBtn.className = "group-pill add";
+    addBtn.textContent = "+ Nieuw";
+    addBtn.addEventListener("click", createGroupFlow);
+    groupSwitcherEl.appendChild(addBtn);
+  }
+
   function renderGroepPanel() {
     if (!supabaseConfigured) {
+      groupSwitcherEl.hidden = true;
       groepContentEl.innerHTML = `<div class="empty-note">De groepsfunctie is nog niet ingesteld.</div>`;
       return;
     }
-    if (!groupState.groupId) {
+    if (!groupState.myGroups.length) {
+      groupSwitcherEl.hidden = true;
+      groepTitleEl.textContent = "Jouw groepen";
       groepContentEl.innerHTML = `<div class="empty-note">Nog geen groep. Start er een, of open een uitnodigingslink van een vriend.</div>`;
-      groepTitleEl.textContent = "Jouw groep";
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "btn-outline";
@@ -2193,6 +2373,10 @@
       groepContentEl.appendChild(btn);
       return;
     }
+    groupSwitcherEl.hidden = false;
+    renderGroupSwitcher();
+    const group = activeGroup();
+    groepTitleEl.textContent = group ? group.name : "Jouw groep";
     const sorted = [...groupState.members].sort((a, b) => b.streak - a.streak);
     const total = sorted.reduce((sum, m) => sum + (m.total || 0), 0);
     const rows = sorted.map((m, i) => `
@@ -2210,12 +2394,49 @@
       ${rows || '<div class="empty-note">Nog geen leden.</div>'}
       <div class="group-total"><strong>Samen ${total} keer</strong>De groep haalde 18:15 in totaal ${total} keer.</div>
     `;
+    const actions = document.createElement("div");
+    actions.className = "group-actions";
+    const inviteBtn = document.createElement("button");
+    inviteBtn.type = "button";
+    inviteBtn.className = "btn-outline";
+    inviteBtn.textContent = "Vriend uitnodigen";
+    inviteBtn.addEventListener("click", inviteFriend);
+    actions.appendChild(inviteBtn);
+    if (group && group.created_by === groupState.userId) {
+      const renameBtn = document.createElement("button");
+      renameBtn.type = "button";
+      renameBtn.className = "btn-outline";
+      renameBtn.textContent = "Naam wijzigen";
+      renameBtn.addEventListener("click", renameGroupFlow);
+      actions.appendChild(renameBtn);
+    }
+    groepContentEl.appendChild(actions);
+    const leaveBtn = document.createElement("button");
+    leaveBtn.type = "button";
+    leaveBtn.className = "leave-link";
+    leaveBtn.textContent = "Groep verlaten";
+    leaveBtn.addEventListener("click", leaveGroupFlow);
+    groepContentEl.appendChild(leaveBtn);
+  }
+
+  function renderProfileSetting() {
+    if (!supabaseConfigured) {
+      profileSettingsEl.innerHTML = "";
+      return;
+    }
+    const name = groupState.myProfile ? groupState.myProfile.display_name : null;
+    profileSettingsEl.innerHTML = `
+      <h5>Account</h5>
+      <div class="setting-row">
+        <span class="setting-label">${name ? `Naam: ${name}` : "Nog geen naam ingesteld"}</span>
+      </div>
+    `;
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "btn-outline";
-    btn.textContent = "Vriend uitnodigen";
-    btn.addEventListener("click", inviteFriend);
-    groepContentEl.appendChild(btn);
+    btn.textContent = name ? "Naam wijzigen" : "Naam instellen";
+    btn.addEventListener("click", changeNameFlow);
+    profileSettingsEl.appendChild(btn);
   }
 
   applyTheme();
