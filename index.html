@@ -2207,12 +2207,19 @@
     const name = await showPrompt("Nieuwe naam", { message: "Zichtbaar voor je groepsgenoten.", placeholder: "Je naam", value: current });
     if (!name || name === current) return;
     try {
-      const { error } = await sb.from("profiles").upsert({ id: groupState.userId, display_name: name, initials: initials(name) });
-      if (error) throw error;
+      // .select() so a write RLS silently drops (0 rows, no error) is
+      // distinguishable from a real success — Postgres/PostgREST returns
+      // "success" with an empty result in that case, not an error.
+      const { data, error } = await sb.from("profiles")
+        .upsert({ id: groupState.userId, display_name: name, initials: initials(name) })
+        .select();
+      if (error || !data || !data.length) throw error || new Error("blocked");
       groupState.myProfile = { display_name: name, initials: initials(name) };
       renderProfileSetting();
       if (groupState.activeGroupId) await fetchGroupMembers();
-    } catch (e) { /* ignore — user can try again */ }
+    } catch (e) {
+      await showAlert("Dat lukte niet", "Je naam kon niet worden opgeslagen. Probeer het opnieuw.");
+    }
   }
 
   async function createGroupFlow() {
@@ -2277,26 +2284,32 @@
     const name = await showPrompt("Naam wijzigen", { value: group.name, placeholder: "Groepsnaam" });
     if (!name || name === group.name) return;
     try {
-      const { error } = await sb.from("groups").update({ name }).eq("id", group.id);
-      if (error) throw error;
+      const { data, error } = await sb.from("groups").update({ name }).eq("id", group.id).select();
+      if (error || !data || !data.length) throw error || new Error("blocked");
       group.name = name;
       renderGroepPanel();
-    } catch (e) { /* ignore — user can try again */ }
+    } catch (e) {
+      await showAlert("Dat lukte niet", "De groepsnaam kon niet worden gewijzigd. Probeer het opnieuw.");
+    }
   }
 
   async function leaveGroupFlow() {
     const group = activeGroup();
     if (!group) return;
     try {
-      const { error } = await sb.from("group_members").delete().eq("group_id", group.id).eq("user_id", groupState.userId);
-      if (error) throw error;
+      const { data, error } = await sb.from("group_members")
+        .delete().eq("group_id", group.id).eq("user_id", groupState.userId)
+        .select();
+      if (error || !data || !data.length) throw error || new Error("blocked");
       groupState.myGroups = groupState.myGroups.filter(g => g.id !== group.id);
       groupState.activeGroupId = groupState.myGroups[0] ? groupState.myGroups[0].id : null;
       lsSet(ACTIVE_GROUP_KEY, groupState.activeGroupId || "");
       groupState.members = [];
       if (groupState.activeGroupId) await fetchGroupMembers();
       renderGroepPanel();
-    } catch (e) { /* ignore — user can try again */ }
+    } catch (e) {
+      await showAlert("Dat lukte niet", "Je kon de groep niet verlaten. Probeer het opnieuw.");
+    }
   }
 
   // Every group this person is in gets the updated numbers, not just the
