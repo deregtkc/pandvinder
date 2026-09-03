@@ -14,5 +14,5 @@ const ADSENSE_PUBLISHER_ID = "ca-pub-1231365130153877";
 // trying to connect. Fill in once you've created a Supabase project, run
 // the schema SQL from the redesign plan, and enabled Anonymous sign-ins
 // under Authentication settings there.
-const SUPABASE_URL = "";
-const SUPABASE_ANON_KEY = "";
+const SUPABASE_URL = "https://yoixxamqqyyeqabbhfuc.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvaXh4YW1xcXl5ZXFhYmJoZnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0MzU3MzUsImV4cCI6MjEwNDAxMTczNX0.jDtvRjVhpzHJyySycUrIiMskkuFYDtSIOBpouUG3opQ";
