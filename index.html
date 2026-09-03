@@ -597,6 +597,71 @@
     color: var(--fg);
     margin-bottom: 10px;
   }
+  .field-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  /* --- Stylized prompt/alert modal (replaces window.prompt/alert) --- */
+  .stats-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(32, 30, 29, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 80;
+    padding: 24px;
+  }
+  .stats-card {
+    background: var(--bg);
+    color: var(--fg);
+    border-radius: 22px;
+    padding: 26px 24px;
+    max-width: 320px;
+    width: 100%;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    text-align: left;
+  }
+  .stats-title {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.25rem;
+    margin-bottom: 10px;
+  }
+  .stats-close {
+    display: block;
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 12px 20px;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 0.95rem;
+    cursor: pointer;
+    margin-top: 14px;
+  }
+  .stats-close:hover { background: var(--accent-hover); }
+  .prompt-message {
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.4;
+    margin: -6px 0 14px;
+  }
+  .prompt-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .prompt-actions .btn-outline,
+  .prompt-actions .stats-close {
+    flex: 1;
+    margin-top: 0;
+    align-self: stretch;
+    text-align: center;
+  }
 
   /* --- Uitleg panel --- */
   .help-list { display: flex; flex-direction: column; gap: 17px; margin-bottom: 22px; }
@@ -993,6 +1058,28 @@
 
 </div>
 
+<!-- Stylized prompt modal (replaces window.prompt) -->
+<div class="stats-overlay" id="prompt-overlay" hidden>
+  <div class="stats-card">
+    <div class="stats-title" id="prompt-title"></div>
+    <div class="prompt-message" id="prompt-message" hidden></div>
+    <input type="text" class="field-input" id="prompt-input">
+    <div class="prompt-actions">
+      <button type="button" class="btn-outline" id="prompt-cancel">Annuleren</button>
+      <button type="button" class="stats-close" id="prompt-ok">Doorgaan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Stylized alert modal (replaces window.alert) -->
+<div class="stats-overlay" id="alert-overlay" hidden>
+  <div class="stats-card">
+    <div class="stats-title" id="alert-title"></div>
+    <div class="prompt-message" id="alert-message"></div>
+    <button type="button" class="stats-close" id="alert-ok" style="width:100%;">Oké</button>
+  </div>
+</div>
+
 <!-- Ads-related UI: entirely hidden unless ADS_ENABLED is true (config.js) -->
 <div class="ads-footer" id="ads-footer" hidden>
   <a class="ads-footer-link" href="privacy.html">Privacybeleid</a>
@@ -1094,6 +1181,16 @@
   const celebrateMilestoneSubEl = document.getElementById("celebrate-milestone-sub");
   const celebrateDotsEl = document.getElementById("celebrate-dots");
   const celebrateShareBtn = document.getElementById("celebrate-share");
+  const promptOverlay = document.getElementById("prompt-overlay");
+  const promptTitleEl = document.getElementById("prompt-title");
+  const promptMessageEl = document.getElementById("prompt-message");
+  const promptInputEl = document.getElementById("prompt-input");
+  const promptCancelBtn = document.getElementById("prompt-cancel");
+  const promptOkBtn = document.getElementById("prompt-ok");
+  const alertOverlay = document.getElementById("alert-overlay");
+  const alertTitleEl = document.getElementById("alert-title");
+  const alertMessageEl = document.getElementById("alert-message");
+  const alertOkBtn = document.getElementById("alert-ok");
   const adsFooter = document.getElementById("ads-footer");
   const consentBanner = document.getElementById("consent-banner");
   const cookieSettingsBtn = document.getElementById("cookie-settings-btn");
@@ -1873,6 +1970,51 @@
     if (ADS_ENABLED) consentBanner.hidden = false;
   });
 
+  // --- Stylized prompt/alert modals, replacing window.prompt/window.alert ---
+  let promptResolve = null;
+  function showPrompt(title, { message, placeholder, value } = {}) {
+    return new Promise((resolve) => {
+      promptResolve = resolve;
+      promptTitleEl.textContent = title;
+      if (message) {
+        promptMessageEl.textContent = message;
+        promptMessageEl.hidden = false;
+      } else {
+        promptMessageEl.hidden = true;
+      }
+      promptInputEl.placeholder = placeholder || "";
+      promptInputEl.value = value || "";
+      promptOverlay.hidden = false;
+      setTimeout(() => { promptInputEl.focus(); promptInputEl.select(); }, 50);
+    });
+  }
+  function closePrompt(result) {
+    promptOverlay.hidden = true;
+    if (promptResolve) { promptResolve(result); promptResolve = null; }
+  }
+  promptOkBtn.addEventListener("click", () => closePrompt(promptInputEl.value.trim() || null));
+  promptCancelBtn.addEventListener("click", () => closePrompt(null));
+  promptInputEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") closePrompt(promptInputEl.value.trim() || null);
+    if (e.key === "Escape") closePrompt(null);
+  });
+
+  let alertResolve = null;
+  function showAlert(title, message) {
+    return new Promise((resolve) => {
+      alertResolve = resolve;
+      alertTitleEl.textContent = title;
+      alertMessageEl.textContent = message || "";
+      alertOverlay.hidden = false;
+    });
+  }
+  function closeAlert() {
+    alertOverlay.hidden = true;
+    if (alertResolve) { alertResolve(); alertResolve = null; }
+  }
+  alertOkBtn.addEventListener("click", closeAlert);
+  alertOverlay.addEventListener("click", (e) => { if (e.target === alertOverlay) closeAlert(); });
+
   // --- Groep: optional shared leaderboard via Supabase. No login — a
   // silent anonymous session gives each device a stable identity. Every
   // function here is a safe no-op until config.js has real
@@ -1949,8 +2091,8 @@
     try {
       const { data } = await sb.from("profiles").select("id").eq("id", groupState.userId).maybeSingle();
       if (data) return true;
-      const name = window.prompt("Hoe heet je? (zichtbaar voor je groep)");
-      if (!name || !name.trim()) return false;
+      const name = await showPrompt("Hoe heet je?", { message: "Zichtbaar voor je groepsgenoten.", placeholder: "Je naam" });
+      if (!name) return false;
       const { error } = await sb.from("profiles").insert({
         id: groupState.userId,
         display_name: name.trim(),
@@ -1965,8 +2107,8 @@
 
   async function createGroupFlow() {
     if (!(await ensureProfile())) return;
-    const name = window.prompt("Naam voor je groep?");
-    if (!name || !name.trim()) return;
+    const name = await showPrompt("Naam voor je groep?", { placeholder: "bijv. Jaarclub De Kater" });
+    if (!name) return;
     try {
       const { data: group, error } = await sb.from("groups")
         .insert({ name: name.trim(), created_by: groupState.userId })
@@ -2029,8 +2171,10 @@
     }
     try {
       await navigator.clipboard.writeText(url);
-      window.alert("Uitnodigingslink gekopieerd!");
-    } catch (e) { window.prompt("Kopieer deze link:", url); }
+      await showAlert("Gekopieerd!", "De uitnodigingslink staat op je klembord.");
+    } catch (e) {
+      await showPrompt("Kopieer deze link", { value: url });
+    }
   }
 
   function renderGroepPanel() {
