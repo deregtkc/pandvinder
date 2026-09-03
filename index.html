@@ -273,10 +273,75 @@
     letter-spacing: 0.01em;
   }
 
-  .witness-stats {
-    color: var(--muted);
-    font-size: 0.78rem;
-    margin-top: 8px;
+  #help-btn, #stats-btn {
+    position: fixed;
+    z-index: 15;
+    background: none;
+    border: 1px solid var(--muted);
+    color: var(--fg);
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  #help-btn {
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    padding: 0;
+  }
+  #stats-btn {
+    bottom: 16px;
+    right: 16px;
+    padding: 8px 16px;
+  }
+
+  /* --- Stats / help overlays --- */
+  .stats-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 60;
+    padding: 24px;
+  }
+  .stats-card {
+    background: var(--bg);
+    color: var(--fg);
+    border-radius: 20px;
+    padding: 28px 32px;
+    text-align: center;
+    max-width: 300px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  }
+  .stats-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin-bottom: 14px;
+  }
+  .stats-line {
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+    color: var(--fg);
+    line-height: 1.4;
+  }
+  .stats-close {
+    margin-top: 16px;
+    background: var(--fg);
+    color: var(--bg);
+    border: none;
+    border-radius: 999px;
+    padding: 8px 20px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
   }
 
   /* --- Achievement pop-up (18:15 streak milestones) --- */
@@ -436,6 +501,9 @@
 
   <!-- Compass screen -->
   <div class="screen" id="compass-screen">
+    <button type="button" id="help-btn" aria-label="Help">?</button>
+    <button type="button" id="stats-btn" aria-label="Statistieken">Stats</button>
+
     <div class="dial-center">
       <div class="dial-wrap" id="dial-wrap">
         <div class="dial" id="dial"></div>
@@ -452,9 +520,28 @@
         <div class="countdown-time" id="countdown-time"></div>
         <div class="countdown-caption">tot 18:15</div>
       </div>
-      <div class="witness-stats" id="witness-stats" hidden></div>
       <div class="alignment-badge" id="alignment-badge" hidden>✓ Je kijkt recht op het 8e MF</div>
       <div class="warning" id="warning"></div>
+    </div>
+  </div>
+
+  <!-- Stats overlay -->
+  <div class="stats-overlay" id="stats-overlay" hidden>
+    <div class="stats-card">
+      <div class="stats-title">Statistieken</div>
+      <div id="stats-content"></div>
+      <button type="button" class="stats-close" id="stats-close">Sluiten</button>
+    </div>
+  </div>
+
+  <!-- Help overlay -->
+  <div class="stats-overlay" id="help-overlay" hidden>
+    <div class="stats-card">
+      <div class="stats-title">Hoe werkt het?</div>
+      <div class="stats-line">Tik op het kompas om van thema te wisselen.</div>
+      <div class="stats-line">Tik op de afstand om naar Het Pand te navigeren.</div>
+      <div class="stats-line">Tik op Stats om je statistieken te bekijken.</div>
+      <button type="button" class="stats-close" id="help-close">Sluiten</button>
     </div>
   </div>
 
@@ -546,7 +633,13 @@
   const dial = document.getElementById("dial");
   const alignmentGlow = document.getElementById("alignment-glow");
   const alignmentBadge = document.getElementById("alignment-badge");
-  const witnessStatsEl = document.getElementById("witness-stats");
+  const statsBtn = document.getElementById("stats-btn");
+  const statsOverlay = document.getElementById("stats-overlay");
+  const statsContentEl = document.getElementById("stats-content");
+  const statsCloseBtn = document.getElementById("stats-close");
+  const helpBtn = document.getElementById("help-btn");
+  const helpOverlay = document.getElementById("help-overlay");
+  const helpCloseBtn = document.getElementById("help-close");
   const achievementOverlay = document.getElementById("achievement-overlay");
   const achievementTitleEl = document.getElementById("achievement-title");
   const achievementSubEl = document.getElementById("achievement-sub");
@@ -732,15 +825,35 @@
     }
     return { title: `${streak} op rij!`, sub: "Knap volgehouden." };
   }
-  function updateWitnessStatsDisplay(state) {
-    if (!state || !state.total) {
-      witnessStatsEl.hidden = true;
+  function renderStatsOverlay() {
+    const state = loadWitness();
+    if (!state.total) {
+      statsContentEl.innerHTML = '<div class="stats-line">Je hebt 18:15 nog niet meegemaakt.</div>';
       return;
     }
-    witnessStatsEl.hidden = false;
     const dagen = state.streak === 1 ? "dag" : "dagen";
-    witnessStatsEl.textContent = `${state.streak} ${dagen} op rij · ${state.total}× totaal`;
+    const best = state.bestStreak || state.streak;
+    const bestDagen = best === 1 ? "dag" : "dagen";
+    statsContentEl.innerHTML = `
+      <div class="stats-line">${state.streak} ${dagen} op rij</div>
+      <div class="stats-line">${state.total}× in totaal meegemaakt</div>
+      <div class="stats-line">Langste streak: ${best} ${bestDagen}</div>
+    `;
   }
+  statsBtn.addEventListener("click", () => {
+    renderStatsOverlay();
+    statsOverlay.hidden = false;
+  });
+  statsCloseBtn.addEventListener("click", () => { statsOverlay.hidden = true; });
+  statsOverlay.addEventListener("click", (e) => {
+    if (e.target === statsOverlay) statsOverlay.hidden = true;
+  });
+
+  helpBtn.addEventListener("click", () => { helpOverlay.hidden = false; });
+  helpCloseBtn.addEventListener("click", () => { helpOverlay.hidden = true; });
+  helpOverlay.addEventListener("click", (e) => {
+    if (e.target === helpOverlay) helpOverlay.hidden = true;
+  });
   function recordWitness() {
     const today = new Date();
     const todayKey = dateStr(today);
@@ -756,7 +869,6 @@
     state.lastDate = todayKey;
     state.bestStreak = Math.max(state.bestStreak || 0, state.streak);
     saveWitness(state);
-    updateWitnessStatsDisplay(state);
 
     if (isMilestone(state.streak) && state.streak > (state.lastCelebratedStreak || 0)) {
       state.lastCelebratedStreak = state.streak;
@@ -1165,7 +1277,6 @@
 
   applyTheme();
   initAds();
-  updateWitnessStatsDisplay(loadWitness());
 })();
 </script>
 </body>
