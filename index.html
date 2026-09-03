@@ -537,6 +537,7 @@
   }
   .member-row.you .member-rank { color: var(--bg); }
   .member-avatar {
+    position: relative;
     width: 36px;
     height: 36px;
     border-radius: 50%;
@@ -548,6 +549,61 @@
     font-size: 0.78rem;
     font-weight: 700;
     flex: none;
+  }
+  .presence-dot {
+    position: absolute;
+    right: -1px;
+    bottom: -1px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #4caf6b;
+    border: 2px solid var(--dial);
+  }
+  .member-row.you .presence-dot { border-color: var(--accent); }
+
+  /* --- "Nu online" summary (Groep panel) --- */
+  .online-summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--sage-pale);
+    color: var(--sage-dark);
+    border-radius: 16px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    font-size: 0.82rem;
+  }
+  .online-avatars {
+    display: flex;
+    flex: none;
+  }
+  .online-avatars .member-avatar {
+    width: 26px;
+    height: 26px;
+    font-size: 0.62rem;
+    margin-left: -8px;
+    border: 2px solid var(--sage-pale);
+  }
+  .online-avatars .member-avatar:first-child { margin-left: 0; }
+  .online-summary-text strong { font-weight: 700; }
+
+  /* --- Compass screen: subtle online indicator, shown only near 18:15 --- */
+  .online-pill {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 10px;
+    font-size: 0.76rem;
+    color: var(--muted);
+  }
+  .online-pill.show { display: flex; }
+  .online-pill .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #4caf6b;
   }
   .member-info { flex: 1; min-width: 0; }
   .member-name { font-size: 0.92rem; font-weight: 600; }
@@ -1001,6 +1057,10 @@
             Route
           </button>
         </div>
+        <div class="online-pill" id="online-pill">
+          <span class="dot"></span>
+          <span id="online-pill-text"></span>
+        </div>
         <div class="warning" id="warning"></div>
       </div>
     </div>
@@ -1024,6 +1084,7 @@
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
         </button>
       </div>
+      <div class="online-summary" id="online-summary" hidden></div>
       <div class="group-switcher" id="group-switcher" hidden></div>
       <div id="groep-content"></div>
     </div>
@@ -1225,6 +1286,9 @@
   const groepContentEl = document.getElementById("groep-content");
   const groepTitleEl = document.getElementById("groep-title");
   const groupSwitcherEl = document.getElementById("group-switcher");
+  const onlineSummaryEl = document.getElementById("online-summary");
+  const onlinePillEl = document.getElementById("online-pill");
+  const onlinePillTextEl = document.getElementById("online-pill-text");
   const swatchRowEl = document.getElementById("swatch-row");
   const soundSettingsEl = document.getElementById("sound-settings");
   const profileSettingsEl = document.getElementById("profile-settings");
@@ -1250,6 +1314,31 @@
   const cookieSettingsBtn = document.getElementById("cookie-settings-btn");
   const consentAcceptBtn = document.getElementById("consent-accept");
   const consentDeclineBtn = document.getElementById("consent-decline");
+
+  // Hoisted above updateCountdown()/updateOnlinePill() — those run
+  // immediately at load and reference these, so they must already be
+  // initialized (const/let bindings exist in a temporal dead zone until
+  // their declaration actually runs, unlike plain undeclared variables).
+  function lsGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+  function lsSet(key, val) { try { localStorage.setItem(key, val); } catch (e) { /* ignore */ } }
+
+  const ACTIVE_GROUP_KEY = "pv-active-group-id";
+  const supabaseConfigured = typeof SUPABASE_URL === "string" && SUPABASE_URL &&
+                              typeof SUPABASE_ANON_KEY === "string" && SUPABASE_ANON_KEY &&
+                              typeof window.supabase !== "undefined";
+  const sb = supabaseConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+  // A person can belong to several groups; membership itself lives in the
+  // database (group_members), not localStorage — only which one is
+  // currently being viewed (activeGroupId) is remembered locally.
+  const groupState = {
+    userId: null,
+    myProfile: null,      // { display_name, initials } | null
+    myGroups: [],          // [{ id, name, created_by }]
+    activeGroupId: lsGet(ACTIVE_GROUP_KEY),
+    members: [],           // members of the active group
+    onlineIds: new Set(),   // user_ids among the active group's members who are online
+  };
 
   let currentPos = null;
   let currentHeading = null;
@@ -1346,7 +1435,8 @@
     Object.entries(panels).forEach(([key, el]) => { el.hidden = key !== name; });
     tabButtons.forEach(btn => { btn.dataset.active = String(btn.dataset.panel === name); });
     if (name === "reeks") renderReeksPanel();
-    if (name === "groep") renderGroepPanel();
+    if (name === "groep") { renderGroepPanel(); startGroepOnlineRefresh(); }
+    else stopGroepOnlineRefresh();
     if (name === "uitleg") { renderSoundSettings(); renderProfileSetting(); }
   }
   function closePanel() {
@@ -1354,6 +1444,7 @@
     compassMain.hidden = false;
     Object.values(panels).forEach(el => { el.hidden = true; });
     tabButtons.forEach(btn => { btn.dataset.active = "false"; });
+    stopGroepOnlineRefresh();
     collapseBell();
   }
   bellBtn.addEventListener("click", expandBell);
@@ -1668,9 +1759,30 @@
     } else {
       confettiFiredThisCycle = false;
     }
+
+    updateOnlinePill(totalSec);
   }
   updateCountdown();
   setInterval(updateCountdown, 1000);
+
+  // Subtle "who's online" hint on the compass screen, shown only as 18:15
+  // approaches — not worth the clutter the rest of the time.
+  const NEAR_1815_SEC = 30 * 60;
+  let lastOnlinePillFetch = 0;
+  async function updateOnlinePill(totalSec) {
+    const near = supabaseConfigured && groupState.userId && totalSec > 0 && totalSec <= NEAR_1815_SEC;
+    if (!near) {
+      onlinePillEl.classList.remove("show");
+      return;
+    }
+    const now = Date.now();
+    if (onlinePillEl.classList.contains("show") && now - lastOnlinePillFetch < 30000) return;
+    lastOnlinePillFetch = now;
+    const counts = await fetchOnlineCounts();
+    const friendWord = counts.friends.length === 1 ? "vriend" : "vrienden";
+    onlinePillTextEl.textContent = `${counts.friends.length} ${friendWord} · ${counts.total} totaal online`;
+    onlinePillEl.classList.add("show");
+  }
 
   // Angle helper: shortest signed difference from a to b, in (-180, 180].
   function angleDiff(a, b) {
@@ -2074,25 +2186,6 @@
   // function here is a safe no-op until config.js has real
   // SUPABASE_URL / SUPABASE_ANON_KEY values (Groep panel shows a
   // "not set up yet" placeholder in the meantime).
-  function lsGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
-  function lsSet(key, val) { try { localStorage.setItem(key, val); } catch (e) { /* ignore */ } }
-
-  const ACTIVE_GROUP_KEY = "pv-active-group-id";
-  const supabaseConfigured = typeof SUPABASE_URL === "string" && SUPABASE_URL &&
-                              typeof SUPABASE_ANON_KEY === "string" && SUPABASE_ANON_KEY &&
-                              typeof window.supabase !== "undefined";
-  const sb = supabaseConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-
-  // A person can belong to several groups; membership itself lives in the
-  // database (group_members), not localStorage — only which one is
-  // currently being viewed (activeGroupId) is remembered locally.
-  const groupState = {
-    userId: null,
-    myProfile: null,      // { display_name, initials } | null
-    myGroups: [],          // [{ id, name, created_by }]
-    activeGroupId: lsGet(ACTIVE_GROUP_KEY),
-    members: [],           // members of the active group
-  };
 
   function initials(name) {
     return name.trim().split(/\s+/).slice(0, 2).map(w => w[0].toUpperCase()).join("") || "?";
@@ -2129,6 +2222,7 @@
       }
       await fetchMyProfile();
       await fetchMyGroups();
+      startHeartbeat();
     } catch (e) { /* offline or misconfigured — Groep just stays empty */ }
   }
 
@@ -2178,9 +2272,146 @@
         display_name: row.profiles ? row.profiles.display_name : "?",
         initials: row.profiles ? row.profiles.initials : "?",
       }));
+      recordKnownContacts(groupState.members);
       if (activePanel === "groep") renderGroepPanel();
       if (activePanel === "reeks") renderReeksPanel();
     } catch (e) { /* ignore — leaderboard just won't update this time */ }
+  }
+
+  // --- Presence (heartbeat) & known contacts ("friends") ---
+  // Anyone using the app gets a presence row, whether or not they've named
+  // themselves or joined a group — this is what makes the site-wide "total
+  // online" count meaningful. known_contacts is a permanent record: once
+  // two people have shared a group, they stay "friends" even if either
+  // later leaves that group (group_members rows don't preserve history).
+  const ONLINE_WINDOW_MS = 2 * 60 * 1000; // last_seen within this = "online"
+  const HEARTBEAT_MS = 30 * 1000;
+  let heartbeatTimer = null;
+
+  async function sendHeartbeat() {
+    if (!sb || !groupState.userId || document.hidden) return;
+    try {
+      await sb.from("presence").upsert({ user_id: groupState.userId, last_seen: new Date().toISOString() });
+    } catch (e) { /* offline — try again next tick */ }
+  }
+  function startHeartbeat() {
+    if (heartbeatTimer) return;
+    sendHeartbeat();
+    heartbeatTimer = setInterval(sendHeartbeat, HEARTBEAT_MS);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) sendHeartbeat(); });
+  }
+
+  // Records that `self` and each of `members` have shared a group. Only
+  // the joining/viewing side needs to write — the pairing is symmetric and
+  // readable by either participant once it exists.
+  async function recordKnownContacts(members) {
+    if (!sb || !groupState.userId) return;
+    const rows = members
+      .map(m => m.user_id)
+      .filter(id => id && id !== groupState.userId)
+      .map(id => {
+        const [user_a, user_b] = [groupState.userId, id].sort();
+        return { user_a, user_b };
+      });
+    if (!rows.length) return;
+    try {
+      await sb.from("known_contacts").upsert(rows, { onConflict: "user_a,user_b", ignoreDuplicates: true });
+    } catch (e) { /* ignore — will retry next time this group's members are fetched */ }
+  }
+
+  async function fetchFriendIds() {
+    if (!sb || !groupState.userId) return [];
+    try {
+      const { data, error } = await sb
+        .from("known_contacts")
+        .select("user_a, user_b")
+        .or(`user_a.eq.${groupState.userId},user_b.eq.${groupState.userId}`);
+      if (error) throw error;
+      return (data || []).map(row => (row.user_a === groupState.userId ? row.user_b : row.user_a));
+    } catch (e) {
+      return [];
+    }
+  }
+
+  async function fetchOnlineCounts() {
+    if (!sb || !groupState.userId) return { total: 0, friends: [] };
+    const sinceIso = new Date(Date.now() - ONLINE_WINDOW_MS).toISOString();
+    try {
+      const { count } = await sb.from("presence").select("user_id", { count: "exact", head: true }).gt("last_seen", sinceIso);
+      const friendIds = await fetchFriendIds();
+      let friends = [];
+      if (friendIds.length) {
+        // Two steps, not an embedded select: presence.user_id and
+        // profiles.id both reference auth.users independently (no direct
+        // FK between the two tables, deliberately — presence must work
+        // for people who've never set up a profile), so PostgREST can't
+        // auto-join them.
+        const { data: onlineRows } = await sb.from("presence").select("user_id").in("user_id", friendIds).gt("last_seen", sinceIso);
+        const onlineFriendIds = (onlineRows || []).map(r => r.user_id);
+        if (onlineFriendIds.length) {
+          const { data: profileRows } = await sb.from("profiles").select("id, display_name, initials").in("id", onlineFriendIds);
+          friends = (profileRows || []).map(p => ({ user_id: p.id, display_name: p.display_name, initials: p.initials }));
+        }
+      }
+      return { total: count || 0, friends };
+    } catch (e) {
+      return { total: 0, friends: [] };
+    }
+  }
+
+  async function fetchOnlineUserIds(ids) {
+    if (!sb || !ids.length) return new Set();
+    const sinceIso = new Date(Date.now() - ONLINE_WINDOW_MS).toISOString();
+    try {
+      const { data } = await sb.from("presence").select("user_id").in("user_id", ids).gt("last_seen", sinceIso);
+      return new Set((data || []).map(r => r.user_id));
+    } catch (e) {
+      return new Set();
+    }
+  }
+
+  // Refreshes both the "Nu online" summary and the per-member presence
+  // dots for whichever group is currently active. Fire-and-forget: kicked
+  // off when the Groep panel opens/switches group, and on a light interval
+  // while it stays open.
+  let groepOnlineTimer = null;
+  async function refreshGroepOnline() {
+    if (!supabaseConfigured || !groupState.myGroups.length) {
+      onlineSummaryEl.hidden = true;
+      return;
+    }
+    const ids = groupState.members.map(m => m.user_id);
+    const [onlineIds, counts] = await Promise.all([fetchOnlineUserIds(ids), fetchOnlineCounts()]);
+    groupState.onlineIds = onlineIds;
+    renderOnlineSummary(counts);
+    if (activePanel === "groep") renderGroepPanel();
+  }
+  function startGroepOnlineRefresh() {
+    stopGroepOnlineRefresh();
+    refreshGroepOnline();
+    groepOnlineTimer = setInterval(refreshGroepOnline, 30000);
+  }
+  function stopGroepOnlineRefresh() {
+    if (groepOnlineTimer) { clearInterval(groepOnlineTimer); groepOnlineTimer = null; }
+  }
+
+  function renderOnlineSummary(online) {
+    if (!online || (!online.friends.length && !online.total)) {
+      onlineSummaryEl.hidden = true;
+      return;
+    }
+    onlineSummaryEl.hidden = false;
+    const avatars = online.friends.slice(0, 5).map(f =>
+      `<span class="member-avatar" title="${f.display_name}">${f.initials}</span>`
+    ).join("");
+    const friendWord = online.friends.length === 1 ? "vriend" : "vrienden";
+    onlineSummaryEl.innerHTML = `
+      <div class="online-avatars">${avatars}</div>
+      <div class="online-summary-text">
+        <strong>${online.friends.length}</strong> ${friendWord} nu online
+        <br>${online.total} in totaal op Pandvinder nu
+      </div>
+    `;
   }
 
   async function ensureProfile() {
@@ -2341,13 +2572,15 @@
     }
   }
 
-  function switchActiveGroup(id) {
+  async function switchActiveGroup(id) {
     if (id === groupState.activeGroupId) return;
     groupState.activeGroupId = id;
     lsSet(ACTIVE_GROUP_KEY, id);
     groupState.members = [];
+    groupState.onlineIds = new Set();
     renderGroepPanel();
-    fetchGroupMembers();
+    await fetchGroupMembers();
+    refreshGroepOnline();
   }
 
   function renderGroupSwitcher() {
@@ -2396,7 +2629,7 @@
     const rows = sorted.map((m, i) => `
       <div class="member-row ${m.user_id === groupState.userId ? "you" : ""}">
         <span class="member-rank">${i + 1}</span>
-        <span class="member-avatar">${m.initials}</span>
+        <span class="member-avatar">${m.initials}${groupState.onlineIds.has(m.user_id) ? '<span class="presence-dot" title="Nu online"></span>' : ""}</span>
         <div class="member-info">
           <div class="member-name">${m.user_id === groupState.userId ? "Jij" : m.display_name}</div>
           <div class="member-sub">beste reeks ${m.best_streak}</div>
