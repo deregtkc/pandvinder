@@ -2224,7 +2224,7 @@
 
   async function createGroupFlow() {
     if (!(await ensureProfile())) return;
-    const name = await showPrompt("Naam voor je groep?", { placeholder: "bijv. Jaarclub De Kater" });
+    const name = await showPrompt("Naam voor je groep?", { placeholder: "Iets grappigs" });
     if (!name) return;
     try {
       const { data: group, error } = await sb.from("groups")
