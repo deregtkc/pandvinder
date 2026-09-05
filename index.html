@@ -1233,6 +1233,15 @@
   // Vindicat atque Polit (Mutua Fides), Grote Markt 27, Groningen
   const TARGET = { lat: 53.218611, lon: 6.568331 };
 
+  // On iOS, motion/orientation access is gated by a per-app OS setting
+  // (Settings → Privacy & Security → Motion & Fitness) separate from the
+  // in-page permission prompt. Non-Safari iOS browsers are especially prone
+  // to silently denying without a way to re-prompt, so point users at the
+  // actual switch instead of a generic "allow it in your browser" message.
+  const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
+  const isIOSNonSafari = isIOS && /CriOS|FxiOS|EdgiOS|OPiOS/.test(navigator.userAgent);
+  const iosMotionHint = "Ga naar iOS-Instellingen → Privacy en beveiliging → Beweging en fitness en zet toegang aan voor je browser-app. Dat is een andere schakelaar dan de toestemming die je in de browser zelf ziet, en herstart de browser-app daarna.";
+
   const THEMES = ["mutuafides", "light", "dark", "classic", "kater", "disco"];
   const THEME_KEY = "pv-theme";
   function loadStoredThemeIndex() {
@@ -2034,7 +2043,9 @@
       if (session === startSession && lastOrientationTime === 0) {
         showError(
           "Kompas reageert niet",
-          "Pandvinder ontvangt geen kompasgegevens. Gebruik je Firefox? Controleer dan Instellingen → Sitemachtigingen → bewegings- en lichtsensoren, of probeer het in Chrome. Zorg er anders voor dat bewegings- en oriëntatietoegang voor deze site is toegestaan, en probeer het opnieuw."
+          isIOSNonSafari
+            ? `Pandvinder ontvangt geen kompasgegevens. ${iosMotionHint}`
+            : "Pandvinder ontvangt geen kompasgegevens. Gebruik je Firefox? Controleer dan Instellingen → Sitemachtigingen → bewegings- en lichtsensoren, of probeer het in Chrome. Zorg er anders voor dat bewegings- en oriëntatietoegang voor deze site is toegestaan, en probeer het opnieuw."
         );
       }
     }, 6000);
@@ -2050,12 +2061,22 @@
           typeof DeviceOrientationEvent.requestPermission === "function") {
         const state = await DeviceOrientationEvent.requestPermission();
         if (state !== "granted") {
-          showError("Kompastoestemming geweigerd", "Pandvinder heeft toegang tot beweging en oriëntatie nodig om als kompas te werken. Sta dit toe in je browserinstellingen en probeer het opnieuw.");
+          showError(
+            "Kompastoestemming geweigerd",
+            isIOSNonSafari
+              ? `Pandvinder heeft toegang tot beweging en oriëntatie nodig om als kompas te werken. ${iosMotionHint}`
+              : "Pandvinder heeft toegang tot beweging en oriëntatie nodig om als kompas te werken. Sta dit toe in je browserinstellingen en probeer het opnieuw."
+          );
           return;
         }
       }
     } catch (e) {
-      showError("Kompastoestemming geweigerd", "Pandvinder heeft toegang tot beweging en oriëntatie nodig om als kompas te werken. Sta dit toe in je browserinstellingen en probeer het opnieuw.");
+      showError(
+        "Kompastoestemming geweigerd",
+        isIOSNonSafari
+          ? `Pandvinder heeft toegang tot beweging en oriëntatie nodig om als kompas te werken. ${iosMotionHint}`
+          : "Pandvinder heeft toegang tot beweging en oriëntatie nodig om als kompas te werken. Sta dit toe in je browserinstellingen en probeer het opnieuw."
+      );
       return;
     }
 
