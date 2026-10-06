@@ -1347,6 +1347,8 @@
   // initialized (const/let bindings exist in a temporal dead zone until
   // their declaration actually runs, unlike plain undeclared variables).
   function lsGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+  // Names/initials come from other users: always escape before putting in innerHTML.
+  const esc = (v) => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   function lsSet(key, val) { try { localStorage.setItem(key, val); } catch (e) { /* ignore */ } }
 
   const ACTIVE_GROUP_KEY = "pv-active-group-id";
@@ -1825,7 +1827,9 @@
 
   function setNeedleRotation(targetDeg) {
     // shortest-path rotation to avoid the needle spinning the long way around
-    displayedRotation += angleDiff(displayedRotation, targetDeg);
+    const delta = angleDiff(displayedRotation, targetDeg);
+    if (Math.abs(delta) < 0.2) return; // sub-visible change: skip the style write
+    displayedRotation += delta;
     needle.style.transform = `rotate(${displayedRotation}deg)`;
   }
 
@@ -2075,6 +2079,15 @@
   }
 
   startBtn.addEventListener("click", requestPermissionsAndStart);
+
+  // Returning users: if location is already allowed and the browser needs no
+  // gesture for motion data (everything except iOS), skip the start screen.
+  if (navigator.permissions && typeof DeviceOrientationEvent !== "undefined" &&
+      typeof DeviceOrientationEvent.requestPermission !== "function") {
+    navigator.permissions.query({ name: "geolocation" })
+      .then(r => { if (r.state === "granted") requestPermissionsAndStart(); })
+      .catch(() => {});
+  }
   retryBtn.addEventListener("click", () => {
     startSession++;
     isCompassActive = false;
@@ -2450,7 +2463,7 @@
     }
     onlineSummaryEl.hidden = false;
     const avatars = online.friends.slice(0, 5).map(f =>
-      `<span class="member-avatar" title="${f.display_name}">${f.initials}</span>`
+      `<span class="member-avatar" title="${esc(f.display_name)}">${esc(f.initials)}</span>`
     ).join("");
     const friendWord = online.friends.length === 1 ? "vriend" : "vrienden";
     onlineSummaryEl.innerHTML = `
@@ -2677,9 +2690,9 @@
     const rows = sorted.map((m, i) => `
       <div class="member-row ${m.user_id === groupState.userId ? "you" : ""}">
         <span class="member-rank">${i + 1}</span>
-        <span class="member-avatar">${m.initials}${groupState.onlineIds.has(m.user_id) ? '<span class="presence-dot" title="Nu online"></span>' : ""}</span>
+        <span class="member-avatar">${esc(m.initials)}${groupState.onlineIds.has(m.user_id) ? '<span class="presence-dot" title="Nu online"></span>' : ""}</span>
         <div class="member-info">
-          <div class="member-name">${m.user_id === groupState.userId ? "Jij" : m.display_name}</div>
+          <div class="member-name">${m.user_id === groupState.userId ? "Jij" : esc(m.display_name)}</div>
           <div class="member-sub">beste reeks ${m.best_streak}</div>
         </div>
         <span class="member-streak">${m.streak}</span>
@@ -2723,7 +2736,7 @@
     profileSettingsEl.innerHTML = `
       <h5>Account</h5>
       <div class="setting-row">
-        <span class="setting-label">${name ? `Naam: ${name}` : "Nog geen naam ingesteld"}</span>
+        <span class="setting-label">${name ? `Naam: ${esc(name)}` : "Nog geen naam ingesteld"}</span>
       </div>
     `;
     const btn = document.createElement("button");
@@ -2742,7 +2755,19 @@
 })();
 </script>
 <script>
-  if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+    // The worker serves cached files first; it tells us when the network copy of the page differs.
+    navigator.serviceWorker.addEventListener("message", (e) => {
+      if (!e.data || e.data.type !== "update" || document.getElementById("update-toast")) return;
+      const t = document.createElement("button");
+      t.id = "update-toast";
+      t.textContent = "Nieuwe versie - tik om te herladen";
+      t.style.cssText = "position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:200;background:#201e1d;color:#f5ead8;border:0;border-radius:999px;padding:10px 18px;font:600 0.85rem Figtree,system-ui,sans-serif;cursor:pointer";
+      t.onclick = () => location.reload();
+      document.body.appendChild(t);
+    });
+  }
 </script>
 </body>
 </html>
