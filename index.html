@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;600;700&display=swap">
-<title>Pandvinder — kompas naar het 8e MF</title>
+<title>Pandvinder - kompas naar het 8e MF</title>
 <meta name="description" content="Een kompas dat altijd naar Mutua Fides in Groningen wijst. Mis nooit meer de 18:15.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://pandfinder.nl">
@@ -1053,7 +1053,7 @@
   <div class="screen active" id="start-screen">
     <img src="mutua-fides-bottle.png" alt="" style="width:96px;height:auto;transform:rotate(-8deg);margin-bottom:20px;">
     <h1>Pandvinder</h1>
-    <p class="sub">Wijst de weg naar het 8e MF, waar je ook staat in Groningen — Grote Markt 27. Locatie en kompas nodig.</p>
+    <p class="sub">Wijst de weg naar het 8e MF, waar je ook staat in Groningen - Grote Markt 27. Locatie en kompas nodig.</p>
     <button class="primary" id="start-btn">Wijs me de weg</button>
     <div class="sound-row">
       <button type="button" class="toggle-switch" id="sound-vibrate-toggle" data-on="true" aria-label="Geluid en trillen"></button>
@@ -1138,7 +1138,7 @@
           <div class="help-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m16.2 7.8-2.1 6.3-6.3 2.1 2.1-6.3z"></path></svg>
           </div>
-          <div class="help-text"><strong>Tik op de fles</strong><span>Wissel van thema — van klassiek kompas tot kater.</span></div>
+          <div class="help-text"><strong>Tik op de fles</strong><span>Wissel van thema - van klassiek kompas tot kater.</span></div>
         </div>
         <div class="help-item">
           <div class="help-icon">
@@ -1280,7 +1280,7 @@
     <polygon points="50,94 60,54 50,62 40,54" fill="var(--needle)"/>
   `;
   // "Mutua Fides" bottle: an AI-generated, user-designed original bottle
-  // (own label, own emblem — not a reproduction of any real brand), cap at
+  // (own label, own emblem - not a reproduction of any real brand), cap at
   // the top of the viewBox as the "pointing" end. Image is 555x1475px.
   const MUTUA_FIDES_NEEDLE = `
     <image href="mutua-fides-bottle.png" x="33.1" y="5" width="33.9" height="90"
@@ -1360,7 +1360,7 @@
   const consentAcceptBtn = document.getElementById("consent-accept");
   const consentDeclineBtn = document.getElementById("consent-decline");
 
-  // Hoisted above updateCountdown()/updateOnlinePill() — those run
+  // Hoisted above updateCountdown()/updateOnlinePill() - those run
   // immediately at load and reference these, so they must already be
   // initialized (const/let bindings exist in a temporal dead zone until
   // their declaration actually runs, unlike plain undeclared variables).
@@ -1374,7 +1374,7 @@
   const sb = supabaseConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
   // A person can belong to several groups; membership itself lives in the
-  // database (group_members), not localStorage — only which one is
+  // database (group_members), not localStorage - only which one is
   // currently being viewed (activeGroupId) is remembered locally.
   const groupState = {
     userId: null,
@@ -1539,7 +1539,7 @@
         osc.start(now + i * 0.05);
         osc.stop(now + 0.7 + i * 0.05);
       });
-    } catch (e) { /* Web Audio unavailable — silently skip */ }
+    } catch (e) { /* Web Audio unavailable - silently skip */ }
   }
 
   function updateSoundVibrateToggleUI() {
@@ -1610,7 +1610,7 @@
     return `${(m / 1000).toFixed(2)} km`;
   }
 
-  // Vindicat was founded in 1815 — show distance as multiples of 18.15 km too.
+  // Vindicat was founded in 1815 - show distance as multiples of 18.15 km too.
   function formatMultiple(m) {
     const multiples = (m / 1000) / 18.15;
     const rounded = Math.round(multiples * 2) / 2;
@@ -1697,11 +1697,11 @@
     }
     const dagen = state.streak === 1 ? "dag" : "dagen";
     const best = state.bestStreak || state.streak;
-    const rank = groupState.activeGroupId ? formatRank(groupMemberRank()) : "—";
+    const rank = groupState.activeGroupId ? formatRank(groupMemberRank()) : "-";
     reeksContentEl.innerHTML = `
       <div class="reeks-hero">
         <div class="reeks-hero-number">${state.streak}</div>
-        <div class="reeks-hero-caption">${dagen} op rij bij 18:15 — ${streakCaption(state.streak)}</div>
+        <div class="reeks-hero-caption">${dagen} op rij bij 18:15 - ${streakCaption(state.streak)}</div>
         <div class="dot-row">${dotRow(Math.min(state.streak, 9), 9)}</div>
       </div>
       <div class="tile-row">
@@ -1759,15 +1759,15 @@
   });
   celebrateShareBtn.addEventListener("click", async () => {
     const state = loadWitness();
-    const text = `Ik heb 18:15 net weer gehaald bij Pandvinder — ${state.streak} op rij!`;
+    const text = `Ik heb 18:15 net weer gehaald bij Pandvinder - ${state.streak} op rij!`;
     if (navigator.share) {
-      try { await navigator.share({ text }); } catch (e) { /* user cancelled — ignore */ }
+      try { await navigator.share({ text }); } catch (e) { /* user cancelled - ignore */ }
     } else {
       try {
         await navigator.clipboard.writeText(text);
         celebrateShareBtn.textContent = "Gekopieerd!";
         setTimeout(() => { celebrateShareBtn.textContent = "Deel je 18:15"; }, 2000);
-      } catch (e) { /* clipboard unavailable — ignore */ }
+      } catch (e) { /* clipboard unavailable - ignore */ }
     }
   });
 
@@ -1812,7 +1812,7 @@
   setInterval(updateCountdown, 1000);
 
   // Subtle "who's online" hint on the compass screen, shown only as 18:15
-  // approaches — not worth the clutter the rest of the time.
+  // approaches - not worth the clutter the rest of the time.
   const NEAR_1815_SEC = 30 * 60;
   let lastOnlinePillFetch = 0;
   async function updateOnlinePill(totalSec) {
@@ -1845,7 +1845,7 @@
   let displayedRotation = 0;
 
   // Some browsers (notably Firefox on Android) never report a true,
-  // north-referenced heading — only orientation relative to whatever way
+  // north-referenced heading - only orientation relative to whatever way
   // the phone faced when the sensor started. We detect that case and
   // auto-calibrate it against GPS course-over-ground while the user walks,
   // instead of trusting it as true north (which would silently point wrong).
@@ -1898,7 +1898,7 @@
     if (currentHeading === null) {
       if (textDue) {
         warningEl.textContent = compassMode === "uncalibrated"
-          ? "Kompas kalibreren — loop een paar stappen met je telefoon in de hand."
+          ? "Kompas kalibreren - loop een paar stappen met je telefoon in de hand."
           : "Wachten op kompas…";
       }
       app.setAttribute("data-aligned", "false");
@@ -1915,9 +1915,9 @@
     const staleGPS = now - lastFixTime > 15000;
     const staleOri = now - lastOrientationTime > 3000;
     if (staleOri) {
-      warningEl.textContent = "Kompassignaal verloren — beweeg je telefoon in een 8-vorm om opnieuw te kalibreren.";
+      warningEl.textContent = "Kompassignaal verloren - beweeg je telefoon in een 8-vorm om opnieuw te kalibreren.";
     } else if (staleGPS) {
-      warningEl.textContent = "Zwak GPS-signaal — locatie kan verouderd zijn.";
+      warningEl.textContent = "Zwak GPS-signaal - locatie kan verouderd zijn.";
     } else {
       warningEl.textContent = "";
     }
@@ -1961,7 +1961,7 @@
     if (err && err.code === err.PERMISSION_DENIED) {
       showError("Locatie niet beschikbaar", "Pandvinder kon je locatie niet gebruiken. Controleer of locatievoorzieningen zijn ingeschakeld en toestemming is verleend, en probeer het opnieuw.");
     } else {
-      // Transient (timeout / temporarily unavailable, e.g. indoors) — keep watching.
+      // Transient (timeout / temporarily unavailable, e.g. indoors) - keep watching.
       warningEl.textContent = "Wachten op GPS-signaal…";
     }
   }
@@ -1979,7 +1979,7 @@
       if (evt.absolute === true) {
         trueHeading = raw;
       } else {
-        // No north reference (typical on Firefox/Android) — needs calibration.
+        // No north reference (typical on Firefox/Android) - needs calibration.
         relative = raw;
       }
     }
@@ -2010,7 +2010,7 @@
     try {
       wakeLock = await navigator.wakeLock.request("screen");
       wakeLock.addEventListener("release", () => { wakeLock = null; });
-    } catch (e) { /* not critical — screen may just dim normally */ }
+    } catch (e) { /* not critical - screen may just dim normally */ }
   }
   function releaseWakeLock() {
     if (wakeLock) {
@@ -2272,7 +2272,7 @@
     });
   }
 
-  // --- Groep: optional shared leaderboard via Supabase. No login — a
+  // --- Groep: optional shared leaderboard via Supabase. No login - a
   // silent anonymous session gives each device a stable identity. Every
   // function here is a safe no-op until config.js has real
   // SUPABASE_URL / SUPABASE_ANON_KEY values (Groep panel shows a
@@ -2281,7 +2281,7 @@
   function initials(name) {
     return name.trim().split(/\s+/).slice(0, 2).map(w => w[0].toUpperCase()).join("") || "?";
   }
-  function formatRank(rank) { return rank ? `#${rank}` : "—"; }
+  function formatRank(rank) { return rank ? `#${rank}` : "-"; }
   function activeGroup() {
     return groupState.myGroups.find(g => g.id === groupState.activeGroupId) || null;
   }
@@ -2314,7 +2314,7 @@
       await fetchMyProfile();
       await fetchMyGroups();
       startHeartbeat();
-    } catch (e) { /* offline or misconfigured — Groep just stays empty */ }
+    } catch (e) { /* offline or misconfigured - Groep just stays empty */ }
   }
 
   async function fetchMyProfile() {
@@ -2344,7 +2344,7 @@
       else groupState.members = [];
       if (activePanel === "groep") renderGroepPanel();
       if (activePanel === "reeks") renderReeksPanel();
-    } catch (e) { /* ignore — Groep just won't update this time */ }
+    } catch (e) { /* ignore - Groep just won't update this time */ }
   }
 
   async function fetchGroupMembers() {
@@ -2366,12 +2366,12 @@
       recordKnownContacts(groupState.members);
       if (activePanel === "groep") renderGroepPanel();
       if (activePanel === "reeks") renderReeksPanel();
-    } catch (e) { /* ignore — leaderboard just won't update this time */ }
+    } catch (e) { /* ignore - leaderboard just won't update this time */ }
   }
 
   // --- Presence (heartbeat) & known contacts ("friends") ---
   // Anyone using the app gets a presence row, whether or not they've named
-  // themselves or joined a group — this is what makes the site-wide "total
+  // themselves or joined a group - this is what makes the site-wide "total
   // online" count meaningful. known_contacts is a permanent record: once
   // two people have shared a group, they stay "friends" even if either
   // later leaves that group (group_members rows don't preserve history).
@@ -2383,7 +2383,7 @@
     if (!sb || !groupState.userId || document.hidden) return;
     try {
       await sb.from("presence").upsert({ user_id: groupState.userId, last_seen: new Date().toISOString() });
-    } catch (e) { /* offline — try again next tick */ }
+    } catch (e) { /* offline - try again next tick */ }
   }
   function startHeartbeat() {
     if (heartbeatTimer) return;
@@ -2393,7 +2393,7 @@
   }
 
   // Records that `self` and each of `members` have shared a group. Only
-  // the joining/viewing side needs to write — the pairing is symmetric and
+  // the joining/viewing side needs to write - the pairing is symmetric and
   // readable by either participant once it exists.
   async function recordKnownContacts(members) {
     if (!sb || !groupState.userId) return;
@@ -2407,7 +2407,7 @@
     if (!rows.length) return;
     try {
       await sb.from("known_contacts").upsert(rows, { onConflict: "user_a,user_b", ignoreDuplicates: true });
-    } catch (e) { /* ignore — will retry next time this group's members are fetched */ }
+    } catch (e) { /* ignore - will retry next time this group's members are fetched */ }
   }
 
   async function fetchFriendIds() {
@@ -2434,7 +2434,7 @@
       if (friendIds.length) {
         // Two steps, not an embedded select: presence.user_id and
         // profiles.id both reference auth.users independently (no direct
-        // FK between the two tables, deliberately — presence must work
+        // FK between the two tables, deliberately - presence must work
         // for people who've never set up a profile), so PostgREST can't
         // auto-join them.
         const { data: onlineRows } = await sb.from("presence").select("user_id").in("user_id", friendIds).gt("last_seen", sinceIso);
@@ -2531,7 +2531,7 @@
     if (!name || name === current) return;
     try {
       // .select() so a write RLS silently drops (0 rows, no error) is
-      // distinguishable from a real success — Postgres/PostgREST returns
+      // distinguishable from a real success - Postgres/PostgREST returns
       // "success" with an empty result in that case, not an error.
       const { data, error } = await sb.from("profiles")
         .upsert({ id: groupState.userId, display_name: name, initials: initials(name) })
@@ -2568,7 +2568,7 @@
       lsSet(ACTIVE_GROUP_KEY, group.id);
       await fetchGroupMembers();
       renderGroepPanel();
-    } catch (e) { /* ignore — user can try again */ }
+    } catch (e) { /* ignore - user can try again */ }
   }
 
   async function joinGroupFromUrl() {
