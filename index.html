@@ -867,6 +867,16 @@
     font-family: inherit;
   }
 
+  .install-btn {
+    margin-top: 14px;
+    background: none;
+    border: 1.5px solid var(--accent);
+    color: var(--accent-active);
+    font: 600 0.92rem var(--font-body);
+    padding: 9px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
   [hidden] { display: none !important; }
 
   /* --- 18:15 celebration takeover --- */
@@ -1044,6 +1054,7 @@
       <button type="button" class="toggle-switch" id="sound-vibrate-toggle" data-on="true" aria-label="Geluid en trillen"></button>
       <span>Geluid &amp; trillen aan</span>
     </div>
+    <button type="button" class="install-btn" id="install-btn" hidden>Installeer als app</button>
   </div>
 
   <!-- Compass screen -->
@@ -2221,6 +2232,36 @@
   }
   alertOkBtn.addEventListener("click", closeAlert);
   alertOverlay.addEventListener("click", (e) => { if (e.target === alertOverlay) closeAlert(); });
+
+  // --- PWA install button (Android/iOS only, hidden once installed).
+  // Android Chrome hands us a native prompt; iOS has no API, so explain the Share menu.
+  const installBtn = document.getElementById("install-btn");
+  const isAndroid = /Android/.test(navigator.userAgent);
+  const isStandalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  let installPrompt = null;
+  if (!isStandalone && (isAndroid || isIOS)) {
+    if (isIOS) installBtn.hidden = false;
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      installPrompt = e;
+      installBtn.hidden = false;
+    });
+    window.addEventListener("appinstalled", () => { installBtn.hidden = true; installPrompt = null; });
+    installBtn.addEventListener("click", async () => {
+      if (installPrompt) {
+        installPrompt.prompt();
+        await installPrompt.userChoice;
+        installPrompt = null;
+        installBtn.hidden = true;
+      } else if (isIOS) {
+        showAlert("Installeer Pandvinder", isIOSNonSafari
+          ? "Tik op het deel-icoon (vierkantje met pijl) in de adresbalk of het menu en kies 'Zet op beginscherm'. Lukt dat niet? Open pandfinder.nl in Safari en doe dit daar."
+          : "Tik op het deel-icoon (vierkantje met pijl) onderin en kies 'Zet op beginscherm'.");
+      } else {
+        showAlert("Installeer Pandvinder", "Open het browsermenu (⋮) en kies 'App installeren' of 'Toevoegen aan startscherm'.");
+      }
+    });
+  }
 
   // --- Groep: optional shared leaderboard via Supabase. No login — a
   // silent anonymous session gives each device a stable identity. Every
