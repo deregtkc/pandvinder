@@ -103,7 +103,6 @@
     color: var(--fg);
     font-family: var(--font-body);
     overscroll-behavior: none;
-    touch-action: pan-x pan-y; /* 'none' here blocks touch-scrolling inside the panels */
     -webkit-user-select: none;
     -webkit-touch-callout: none;
     user-select: none;
@@ -161,14 +160,6 @@
   button.primary:hover { background: var(--accent-hover); }
   button.primary:active { background: var(--accent-active); transform: scale(0.96); }
 
-  .sound-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: 18px;
-    font-size: 0.85rem;
-    color: var(--muted);
-  }
   .toggle-switch {
     position: relative;
     width: 44px;
@@ -440,8 +431,6 @@
     padding-bottom: 76px;
     overflow-y: auto;
     overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
-    min-height: 0;
     text-align: left;
   }
   .panel-header {
@@ -1055,10 +1044,6 @@
     <h1>Pandvinder</h1>
     <p class="sub">Wijst de weg naar het 8e MF, waar je ook staat in Groningen - Grote Markt 27. Locatie en kompas nodig.</p>
     <button class="primary" id="start-btn">Wijs me de weg</button>
-    <div class="sound-row">
-      <button type="button" class="toggle-switch" id="sound-vibrate-toggle" data-on="true" aria-label="Geluid en trillen"></button>
-      <span>Geluid &amp; trillen aan</span>
-    </div>
     <button type="button" class="install-btn" id="install-btn" hidden>Installeer als app</button>
   </div>
 
@@ -1268,10 +1253,8 @@
   const THEMES = ["mutuafides", "light", "dark", "classic", "kater", "disco"];
   const THEME_KEY = "pv-theme";
   function loadStoredThemeIndex() {
-    try {
-      const idx = THEMES.indexOf(localStorage.getItem(THEME_KEY));
-      return idx >= 0 ? idx : 0;
-    } catch (e) { return 0; }
+    const idx = THEMES.indexOf(lsGet(THEME_KEY));
+    return idx >= 0 ? idx : 0;
   }
   let themeIndex = loadStoredThemeIndex();
 
@@ -1337,7 +1320,6 @@
   const swatchRowEl = document.getElementById("swatch-row");
   const soundSettingsEl = document.getElementById("sound-settings");
   const profileSettingsEl = document.getElementById("profile-settings");
-  const soundVibrateToggle = document.getElementById("sound-vibrate-toggle");
   const celebrateScreen = document.getElementById("celebrate-screen");
   const celebrateSubEl = document.getElementById("celebrate-sub");
   const celebrateMilestoneTitleEl = document.getElementById("celebrate-milestone-title");
@@ -1410,7 +1392,7 @@
   function applyTheme() {
     document.documentElement.setAttribute("data-theme", THEMES[themeIndex]);
     buildNeedle();
-    try { localStorage.setItem(THEME_KEY, THEMES[themeIndex]); } catch (e) { /* ignore */ }
+    lsSet(THEME_KEY, THEMES[themeIndex]);
     renderSwatches();
   }
   needle.addEventListener("click", () => {
@@ -1505,14 +1487,10 @@
   const SOUND_KEY = "pv-sound-enabled";
   const VIBRATE_KEY = "pv-vibrate-enabled";
   function loadFlag(key) {
-    try {
-      const v = localStorage.getItem(key);
-      return v === null ? true : v === "1";
-    } catch (e) { return true; }
+    const v = lsGet(key);
+    return v === null ? true : v === "1";
   }
-  function saveFlag(key, value) {
-    try { localStorage.setItem(key, value ? "1" : "0"); } catch (e) { /* ignore */ }
-  }
+  function saveFlag(key, value) { lsSet(key, value ? "1" : "0"); }
   let soundEnabled = loadFlag(SOUND_KEY);
   let vibrateEnabled = loadFlag(VIBRATE_KEY);
 
@@ -1542,21 +1520,6 @@
     } catch (e) { /* Web Audio unavailable - silently skip */ }
   }
 
-  function updateSoundVibrateToggleUI() {
-    const on = soundEnabled && vibrateEnabled;
-    soundVibrateToggle.dataset.on = String(on);
-  }
-  soundVibrateToggle.addEventListener("click", () => {
-    const next = !(soundEnabled && vibrateEnabled);
-    soundEnabled = next;
-    vibrateEnabled = next;
-    saveFlag(SOUND_KEY, next);
-    saveFlag(VIBRATE_KEY, next);
-    updateSoundVibrateToggleUI();
-    renderSoundSettings();
-  });
-  updateSoundVibrateToggleUI();
-
   function renderSoundSettings() {
     soundSettingsEl.innerHTML = `
       <h5>Geluid &amp; trillen</h5>
@@ -1572,13 +1535,11 @@
     document.getElementById("sound-toggle").addEventListener("click", () => {
       soundEnabled = !soundEnabled;
       saveFlag(SOUND_KEY, soundEnabled);
-      updateSoundVibrateToggleUI();
       renderSoundSettings();
     });
     if (canVibrate) document.getElementById("vibrate-toggle").addEventListener("click", () => {
       vibrateEnabled = !vibrateEnabled;
       saveFlag(VIBRATE_KEY, vibrateEnabled);
-      updateSoundVibrateToggleUI();
       renderSoundSettings();
     });
   }
@@ -1651,13 +1612,13 @@
   }
   function loadWitness() {
     try {
-      const raw = localStorage.getItem(WITNESS_KEY);
+      const raw = lsGet(WITNESS_KEY);
       if (raw) return JSON.parse(raw);
-    } catch (e) { /* ignore */ }
+    } catch (e) { /* corrupt JSON */ }
     return { total: 0, streak: 0, lastDate: null, bestStreak: 0, lastCelebratedStreak: 0 };
   }
   function saveWitness(state) {
-    try { localStorage.setItem(WITNESS_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+    lsSet(WITNESS_KEY, JSON.stringify(state));
   }
   function isMilestone(streak) {
     return streak === 3 || streak === 27 || streak % 5 === 0;
@@ -2162,12 +2123,8 @@
     document.head.appendChild(s);
   }
 
-  function getAdConsent() {
-    try { return localStorage.getItem(AD_CONSENT_KEY); } catch (e) { return null; }
-  }
-  function setAdConsent(value) {
-    try { localStorage.setItem(AD_CONSENT_KEY, value); } catch (e) { /* ignore */ }
-  }
+  const getAdConsent = () => lsGet(AD_CONSENT_KEY);
+  const setAdConsent = (value) => lsSet(AD_CONSENT_KEY, value);
 
   function initAds() {
     if (!ADS_ENABLED) {
