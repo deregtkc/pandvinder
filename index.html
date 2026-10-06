@@ -103,7 +103,7 @@
     color: var(--fg);
     font-family: var(--font-body);
     overscroll-behavior: none;
-    touch-action: none;
+    touch-action: pan-x pan-y; /* 'none' here blocks touch-scrolling inside the panels */
     -webkit-user-select: none;
     -webkit-touch-callout: none;
     user-select: none;
@@ -439,6 +439,9 @@
     padding-top: 8px;
     padding-bottom: 76px;
     overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    min-height: 0;
     text-align: left;
   }
   .panel-header {
@@ -842,6 +845,8 @@
     margin-bottom: 10px;
   }
   .setting-row .setting-label { flex: 1; font-size: 0.9rem; font-weight: 600; }
+  .setting-row .setting-label small { font-weight: 400; color: var(--muted); }
+  .toggle-switch:disabled { opacity: 0.4; cursor: not-allowed; }
 
   .error-icon {
     width: 72px;
@@ -1511,8 +1516,9 @@
   let soundEnabled = loadFlag(SOUND_KEY);
   let vibrateEnabled = loadFlag(VIBRATE_KEY);
 
+  const canVibrate = typeof navigator.vibrate === "function"; // false on all iOS browsers
   function vibrate(pattern) {
-    if (vibrateEnabled && typeof navigator.vibrate === "function") navigator.vibrate(pattern);
+    if (vibrateEnabled && canVibrate) navigator.vibrate(pattern);
   }
 
   let audioCtx = null;
@@ -1559,8 +1565,8 @@
         <button type="button" class="toggle-switch" id="sound-toggle" data-on="${soundEnabled}"></button>
       </div>
       <div class="setting-row">
-        <span class="setting-label">Tril bij vergrendeling</span>
-        <button type="button" class="toggle-switch" id="vibrate-toggle" data-on="${vibrateEnabled}"></button>
+        <span class="setting-label">Tril bij vergrendeling${canVibrate ? "" : "<br><small>Niet beschikbaar op iPhone/iPad</small>"}</span>
+        <button type="button" class="toggle-switch" id="vibrate-toggle" data-on="${canVibrate && vibrateEnabled}"${canVibrate ? "" : " disabled"}></button>
       </div>
     `;
     document.getElementById("sound-toggle").addEventListener("click", () => {
@@ -1569,7 +1575,7 @@
       updateSoundVibrateToggleUI();
       renderSoundSettings();
     });
-    document.getElementById("vibrate-toggle").addEventListener("click", () => {
+    if (canVibrate) document.getElementById("vibrate-toggle").addEventListener("click", () => {
       vibrateEnabled = !vibrateEnabled;
       saveFlag(VIBRATE_KEY, vibrateEnabled);
       updateSoundVibrateToggleUI();
@@ -1784,7 +1790,7 @@
 
     if (totalSec > 0 && totalSec <= 5) {
       pulseCountdown();
-      vibrate(50);
+      vibrate(100);
     } else if (totalSec > 0 && totalSec <= 30 && totalSec % 10 === 0) {
       pulseCountdown();
     }
@@ -1871,7 +1877,7 @@
     const deviation = Math.abs(angleDiff(0, relativeDeg));
     const aligned = deviation <= ALIGNMENT_LOCK_DEG;
     app.setAttribute("data-aligned", String(aligned));
-    if (aligned && !wasAligned) vibrate(60);
+    if (aligned && !wasAligned) vibrate(120);
     wasAligned = aligned;
   }
 
