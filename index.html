@@ -1355,7 +1355,10 @@
   const supabaseConfigured = typeof SUPABASE_URL === "string" && SUPABASE_URL &&
                               typeof SUPABASE_ANON_KEY === "string" && SUPABASE_ANON_KEY &&
                               typeof window.supabase !== "undefined";
-  const sb = supabaseConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+  const sb = supabaseConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    // Old supabase.co storage key, so existing anonymous sessions survive the move to api.pandfinder.nl
+    auth: { storageKey: "sb-yoixxamqqyyeqabbhfuc-auth-token" }
+  }) : null;
 
   // A person can belong to several groups; membership itself lives in the
   // database (group_members), not localStorage - only which one is
