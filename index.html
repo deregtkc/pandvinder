@@ -185,6 +185,35 @@
   }
   .toggle-switch[data-on="false"]::after { transform: translateX(0); }
 
+  /* --- Calibration hint: figure-8 that fades out on its own --- */
+  .calibrate-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 25;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 24px;
+    background: var(--bg);
+    color: var(--fg);
+    text-align: center;
+    transition: opacity 1s ease;
+  }
+  .calibrate-overlay.on { display: flex; }
+  .calibrate-overlay.fade { opacity: 0; pointer-events: none; }
+  .calibrate-overlay svg { width: min(70vw, 260px); height: auto; }
+  .calibrate-overlay p {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+  }
+  .calibrate-overlay small {
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
   /* --- Compass screen --- */
   #compass-screen { padding: 40px 24px; transition: background 0.35s ease; }
   #app[data-aligned="true"] #compass-screen { background: var(--sage-pale); color: var(--sage-dark); }
@@ -1045,6 +1074,20 @@
     <p class="sub">Wijst de weg naar het 8e pand, waar je ook bent ter wereld. Heeft locatie- en kompastoestemming nodig.</p>
     <button class="primary" id="start-btn">Wijs me de weg</button>
     <button type="button" class="install-btn" id="install-btn" hidden>Installeer als app</button>
+  </div>
+
+  <!-- Calibration hint -->
+  <div class="calibrate-overlay" id="calibrate-overlay" aria-hidden="true">
+    <svg viewBox="0 0 200 100" aria-hidden="true">
+      <path d="M100 50 C80 10 20 10 20 50 C20 90 80 90 100 50 C120 10 180 10 180 50 C180 90 120 90 100 50 Z"
+            fill="none" stroke="var(--accent)" stroke-width="3" stroke-dasharray="4 6" opacity="0.5"/>
+      <circle r="9" style="fill:var(--accent)">
+        <animateMotion dur="2.6s" repeatCount="indefinite"
+          path="M100 50 C80 10 20 10 20 50 C20 90 80 90 100 50 C120 10 180 10 180 50 C180 90 120 90 100 50 Z"/>
+      </circle>
+    </svg>
+    <p>Beweeg je telefoon in een 8</p>
+    <small>Zo kalibreert het kompas</small>
   </div>
 
   <!-- Compass screen -->
@@ -2075,6 +2118,18 @@
     startCompass();
   }
 
+  const calibrateEl = document.getElementById("calibrate-overlay");
+  let calibrateTimer = null;
+  function showCalibrate() {
+    clearTimeout(calibrateTimer);
+    calibrateEl.classList.remove("fade");
+    calibrateEl.classList.add("on");
+    calibrateTimer = setTimeout(() => {
+      calibrateEl.classList.add("fade");
+      calibrateTimer = setTimeout(() => calibrateEl.classList.remove("on"), 1000);
+    }, 4500);
+  }
+
   function startCompass() {
     if (!startWatchingPosition()) return;
     if (!startWatchingOrientation()) return;
@@ -2084,6 +2139,7 @@
     lsSet("pv-granted", "1");
     requestWakeLock();
     showScreen("compass");
+    showCalibrate();
   }
 
   startBtn.addEventListener("click", requestPermissionsAndStart);
