@@ -1042,7 +1042,7 @@
   <div class="screen active" id="start-screen">
     <img src="mutua-fides-bottle.png" alt="" style="width:96px;height:auto;transform:rotate(-8deg);margin-bottom:20px;">
     <h1>Pandvinder</h1>
-    <p class="sub">Wijst de weg naar het 8e MF, waar je ook staat in Groningen - Grote Markt 27. Locatie en kompas nodig.</p>
+    <p class="sub">Wijst de weg naar het 8e pand, waar je ook bent ter wereld. Heeft locatie- en kompastoestemming nodig.</p>
     <button class="primary" id="start-btn">Wijs me de weg</button>
     <button type="button" class="install-btn" id="install-btn" hidden>Installeer als app</button>
   </div>
@@ -2072,24 +2072,40 @@
       return;
     }
 
+    startCompass();
+  }
+
+  function startCompass() {
     if (!startWatchingPosition()) return;
     if (!startWatchingOrientation()) return;
 
     if (rafId === null) rafId = requestAnimationFrame(renderLoop);
     isCompassActive = true;
+    lsSet("pv-granted", "1");
     requestWakeLock();
     showScreen("compass");
   }
 
   startBtn.addEventListener("click", requestPermissionsAndStart);
 
-  // Returning users: if location is already allowed and the browser needs no
-  // gesture for motion data (everything except iOS), skip the start screen.
-  if (navigator.permissions && typeof DeviceOrientationEvent !== "undefined" &&
-      typeof DeviceOrientationEvent.requestPermission !== "function") {
-    navigator.permissions.query({ name: "geolocation" })
-      .then(r => { if (r.state === "granted") requestPermissionsAndStart(); })
-      .catch(() => {});
+  // iOS needs a user gesture to request motion access, so a returning iOS user
+  // is re-checked silently and falls back to the start screen if refused.
+  async function resumeIfGranted() {
+    startSession++;
+    try {
+      if (typeof DeviceOrientationEvent.requestPermission === "function" &&
+          await DeviceOrientationEvent.requestPermission() !== "granted") return;
+    } catch (e) { return; }
+    startCompass();
+  }
+
+  if (navigator.permissions && typeof DeviceOrientationEvent !== "undefined") {
+    const needsGesture = typeof DeviceOrientationEvent.requestPermission === "function";
+    if (!needsGesture || lsGet("pv-granted")) {
+      navigator.permissions.query({ name: "geolocation" })
+        .then(r => { if (r.state === "granted") resumeIfGranted(); })
+        .catch(() => {});
+    }
   }
   retryBtn.addEventListener("click", () => {
     startSession++;
