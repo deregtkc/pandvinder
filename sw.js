@@ -14,7 +14,18 @@ self.addEventListener("activate", e => e.waitUntil(self.clients.claim()));
 self.addEventListener("fetch", e => {
   const { request } = e;
   const url = new URL(request.url);
-  if (request.method !== "GET" || url.origin !== location.origin || url.pathname === "/dev-stamp.txt") return;
+  if (request.method !== "GET" || url.origin !== location.origin) return;
+  if (request.headers.get("X-Dev-Reload")) {
+    e.respondWith(fetch(request).then(async res => {
+      if (res.ok && url.pathname === "/") {
+        const cache = await caches.open(CACHE);
+        await cache.put(request, res.clone());
+        await cache.put("index.html", res.clone());
+      }
+      return res;
+    }));
+    return;
+  }
   e.respondWith((async () => {
     const cache = await caches.open(CACHE);
     const cached = await cache.match(request, { ignoreSearch: true });
