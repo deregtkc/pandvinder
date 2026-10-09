@@ -664,6 +664,38 @@
     font-weight: 400;
     font-size: 1.3rem;
   }
+  .group-code {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-top: 12px;
+    padding: 12px 16px;
+    border-radius: 16px;
+    background: var(--dial);
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .group-code strong { font-family: var(--font-display); font-weight: 400; font-size: 1.2rem; letter-spacing: 0.12em; color: var(--fg); }
+  .member-role {
+    margin-left: 6px;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .member-admin { display: flex; gap: 14px; margin-top: 4px; }
+  .member-admin button {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--accent);
+    cursor: pointer;
+  }
+  .member-admin button.danger { color: var(--accent-active); }
   .group-total {
     background: var(--sage-pale);
     color: var(--sage-dark);
@@ -812,6 +844,8 @@
     margin-top: 4px;
   }
   .prompt-actions .btn-outline,
+  .choice-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+  .choice-actions button { width: 100%; }
   .prompt-actions .stats-close {
     flex: 1;
     margin-top: 0;
@@ -1088,13 +1122,16 @@
   <!-- Calibration hint -->
   <div class="calibrate-overlay" id="calibrate-overlay" aria-hidden="true">
     <div class="calibrate-card">
-      <svg viewBox="0 0 200 100" aria-hidden="true">
-        <path d="M100 50 C80 10 20 10 20 50 C20 90 80 90 100 50 C120 10 180 10 180 50 C180 90 120 90 100 50 Z"
-              fill="none" stroke="var(--accent)" stroke-width="3" stroke-dasharray="4 6" opacity="0.5"/>
-        <circle r="9" style="fill:var(--accent)">
-          <animateMotion dur="2.6s" repeatCount="indefinite"
-            path="M100 50 C80 10 20 10 20 50 C20 90 80 90 100 50 C120 10 180 10 180 50 C180 90 120 90 100 50 Z"/>
-        </circle>
+      <svg viewBox="0 0 200 110" aria-hidden="true">
+        <path d="M100 55 C80 15 20 15 20 55 C20 95 80 95 100 55 C120 15 180 15 180 55 C180 95 120 95 100 55 Z" fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="3 5" opacity="0.6"/>
+        <g>
+          <animateMotion dur="1.6s" repeatCount="indefinite" path="M100 55 C80 15 20 15 20 55 C20 95 80 95 100 55 C120 15 180 15 180 55 C180 95 120 95 100 55 Z"/>
+          <g>
+            <animateTransform attributeName="transform" type="rotate" values="-35;35;-35" dur="0.8s" repeatCount="indefinite"/>
+            <rect x="-8" y="-14" width="16" height="28" rx="4" fill="var(--bg)" stroke="var(--fg)" stroke-width="2.5"/>
+            <rect x="-5.5" y="-10" width="11" height="18" rx="1.5" fill="var(--accent)"/>
+          </g>
+        </g>
       </svg>
       <p>Beweeg je telefoon in een 8</p>
       <small>Zo kalibreert het kompas</small>
@@ -1183,7 +1220,7 @@
           <div class="help-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg>
           </div>
-          <div class="help-text"><strong>Tik op de afstand</strong><span>Opent de route naar Het Pand in Maps.</span></div>
+          <div class="help-text"><strong>Tik op de afstand</strong><span>Opent de route naar het pand in Maps.</span></div>
         </div>
         <div class="help-item">
           <div class="help-icon">
@@ -1265,6 +1302,15 @@
     <div class="stats-title" id="alert-title"></div>
     <div class="prompt-message" id="alert-message"></div>
     <button type="button" class="stats-close" id="alert-ok" style="width:100%;">Oké</button>
+  </div>
+</div>
+
+<!-- Choice modal: a list of buttons (create/join, confirm) -->
+<div class="stats-overlay" id="choice-overlay" hidden>
+  <div class="stats-card">
+    <div class="stats-title" id="choice-title"></div>
+    <div class="prompt-message" id="choice-message" hidden></div>
+    <div class="choice-actions" id="choice-actions"></div>
   </div>
 </div>
 
@@ -2139,7 +2185,7 @@
     calibrateTimer = setTimeout(() => {
       calibrateEl.classList.add("fade");
       calibrateTimer = setTimeout(() => calibrateEl.classList.remove("on"), 1000);
-    }, 4500);
+    }, 2400);
   }
 
   function startCompass() {
@@ -2283,6 +2329,30 @@
     if (e.key === "Escape") closePrompt(null);
   });
 
+  const choiceOverlay = document.getElementById("choice-overlay");
+  const choiceActionsEl = document.getElementById("choice-actions");
+  function showChoice(title, { message, options }) {
+    return new Promise((resolve) => {
+      document.getElementById("choice-title").textContent = title;
+      const messageEl = document.getElementById("choice-message");
+      messageEl.textContent = message || "";
+      messageEl.hidden = !message;
+      choiceActionsEl.innerHTML = "";
+      const finish = (value) => { choiceOverlay.hidden = true; resolve(value); };
+      const addButton = (label, value, primary) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = primary ? "stats-close" : "btn-outline";
+        b.textContent = label;
+        b.addEventListener("click", () => finish(value));
+        choiceActionsEl.appendChild(b);
+      };
+      options.forEach(o => addButton(o.label, o.value, o.primary));
+      addButton("Annuleren", null, false);
+      choiceOverlay.hidden = false;
+    });
+  }
+
   let alertResolve = null;
   function showAlert(title, message) {
     return new Promise((resolve) => {
@@ -2387,12 +2457,12 @@
     try {
       const { data, error } = await sb
         .from("group_members")
-        .select("group_id, groups(id, name, created_by)")
+        .select("group_id, role, groups(id, name, created_by, join_code)")
         .eq("user_id", groupState.userId);
       if (error) throw error;
       groupState.myGroups = (data || [])
         .filter(row => row.groups)
-        .map(row => ({ id: row.groups.id, name: row.groups.name, created_by: row.groups.created_by }));
+        .map(row => ({ id: row.groups.id, name: row.groups.name, created_by: row.groups.created_by, join_code: row.groups.join_code, role: row.role }));
       if (!groupState.myGroups.some(g => g.id === groupState.activeGroupId)) {
         groupState.activeGroupId = groupState.myGroups[0] ? groupState.myGroups[0].id : null;
         lsSet(ACTIVE_GROUP_KEY, groupState.activeGroupId || "");
@@ -2409,11 +2479,12 @@
     try {
       const { data, error } = await sb
         .from("group_members")
-        .select("user_id, streak, best_streak, total, profiles(display_name, initials)")
+        .select("user_id, role, streak, best_streak, total, profiles(display_name, initials)")
         .eq("group_id", groupState.activeGroupId);
       if (error) throw error;
       groupState.members = (data || []).map(row => ({
         user_id: row.user_id,
+        role: row.role,
         streak: row.streak,
         best_streak: row.best_streak,
         total: row.total,
@@ -2602,30 +2673,89 @@
     }
   }
 
+  function isGroupAdmin(group) {
+    return !!group && (group.created_by === groupState.userId || group.role === "admin");
+  }
+
+  async function adoptGroup(groupId) {
+    await fetchMyGroups();
+    groupState.activeGroupId = groupId;
+    lsSet(ACTIVE_GROUP_KEY, groupId);
+    await fetchGroupMembers();
+    renderGroepPanel();
+  }
+
+  async function groupAddFlow() {
+    const choice = await showChoice("Groep", {
+      message: "Start een nieuwe groep, of voeg je toe aan een bestaande met de code.",
+      options: [
+        { label: "Nieuwe groep maken", value: "create", primary: true },
+        { label: "Code invoeren", value: "join" },
+      ],
+    });
+    if (choice === "create") await createGroupFlow();
+    else if (choice === "join") await joinByCodeFlow();
+  }
+
   async function createGroupFlow() {
     if (!(await ensureProfile())) return;
     const name = await showPrompt("Naam voor je groep?", { placeholder: "Iets grappigs" });
     if (!name) return;
     try {
-      const { data: group, error } = await sb.from("groups")
-        .insert({ name, created_by: groupState.userId })
-        .select()
-        .single();
-      if (error) throw error;
       const state = loadWitness();
-      await sb.from("group_members").insert({
-        group_id: group.id,
-        user_id: groupState.userId,
-        streak: state.streak,
-        best_streak: state.bestStreak,
-        total: state.total,
+      const { data, error } = await sb.rpc("create_group", {
+        p_name: name,
+        p_streak: state.streak,
+        p_best_streak: state.bestStreak,
+        p_total: state.total,
       });
-      groupState.myGroups.push({ id: group.id, name: group.name, created_by: group.created_by });
-      groupState.activeGroupId = group.id;
-      lsSet(ACTIVE_GROUP_KEY, group.id);
+      if (error || !data) throw error || new Error("create failed");
+      await adoptGroup(data.id);
+    } catch (e) {
+      await showAlert("Dat lukte niet", "De groep kon niet worden aangemaakt. Probeer het opnieuw.");
+    }
+  }
+
+  async function joinByCodeFlow() {
+    if (!(await ensureProfile())) return;
+    const input = await showPrompt("Groepscode invoeren", { placeholder: "Bijv. K7QF2D" });
+    if (!input) return;
+    try {
+      const state = loadWitness();
+      const { data, error } = await sb.rpc("join_group_by_code", {
+        p_code: input.replace(/\s/g, "").toUpperCase(),
+        p_streak: state.streak,
+        p_best_streak: state.bestStreak,
+        p_total: state.total,
+      });
+      if (error || !data) throw error || new Error("no group");
+      await adoptGroup(data.id);
+    } catch (e) {
+      await showAlert("Dat lukte niet", "We vonden geen groep met die code. Controleer hem en probeer het opnieuw.");
+    }
+  }
+
+  async function memberActionFlow(action, userId, name) {
+    const group = activeGroup();
+    if (!isGroupAdmin(group)) return;
+    try {
+      if (action === "remove") {
+        const ok = await showChoice(`${name} verwijderen?`, {
+          message: "Deze persoon verdwijnt uit de groep.",
+          options: [{ label: "Verwijderen", value: true, primary: true }],
+        });
+        if (!ok) return;
+        const { error } = await sb.rpc("remove_group_member", { p_group: group.id, p_user: userId });
+        if (error) throw error;
+      } else if (action === "promote") {
+        const { error } = await sb.rpc("set_group_member_role", { p_group: group.id, p_user: userId, p_role: "admin" });
+        if (error) throw error;
+      }
       await fetchGroupMembers();
       renderGroepPanel();
-    } catch (e) { /* ignore - user can try again */ }
+    } catch (e) {
+      await showAlert("Dat lukte niet", "Dat kon niet worden uitgevoerd. Probeer het opnieuw.");
+    }
   }
 
   async function joinGroupFromUrl() {
@@ -2707,16 +2837,18 @@
   }
 
   async function inviteFriend() {
-    if (!groupState.activeGroupId) return;
-    const url = `${window.location.origin}${window.location.pathname}?join=${groupState.activeGroupId}`;
+    const group = activeGroup();
+    if (!group || !group.join_code) return;
+    const text = `Doe mee met onze 18:15-groep op Pandvinder. Voer code ${group.join_code} in.`;
+    const url = `${window.location.origin}${window.location.pathname}`;
     if (navigator.share) {
-      try { await navigator.share({ text: "Doe mee met onze 18:15-groep op Pandvinder", url }); return; } catch (e) { /* fall through to copy */ }
+      try { await navigator.share({ text, url }); return; } catch (e) { /* fall through to copy */ }
     }
     try {
-      await navigator.clipboard.writeText(url);
-      await showAlert("Gekopieerd!", "De uitnodigingslink staat op je klembord.");
+      await navigator.clipboard.writeText(`${text} ${url}`);
+      await showAlert("Gekopieerd!", "De uitnodiging met de groepscode staat op je klembord.");
     } catch (e) {
-      await showPrompt("Kopieer deze link", { value: url });
+      await showPrompt("Kopieer deze uitnodiging", { value: `${text} ${url}` });
     }
   }
 
@@ -2746,7 +2878,7 @@
     addBtn.type = "button";
     addBtn.className = "group-pill add";
     addBtn.textContent = "+ Nieuw";
-    addBtn.addEventListener("click", createGroupFlow);
+    addBtn.addEventListener("click", groupAddFlow);
     groupSwitcherEl.appendChild(addBtn);
   }
 
@@ -2759,12 +2891,12 @@
     if (!groupState.myGroups.length) {
       groupSwitcherEl.hidden = true;
       groepTitleEl.textContent = "Jouw groepen";
-      groepContentEl.innerHTML = `<div class="empty-note">Nog geen groep. Start er een, of open een uitnodigingslink van een vriend.</div>`;
+      groepContentEl.innerHTML = `<div class="empty-note">Nog geen groep. Maak er een, of voer de code van een vriend in.</div>`;
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "btn-outline";
-      btn.textContent = "Nieuwe groep starten";
-      btn.addEventListener("click", createGroupFlow);
+      btn.textContent = "Groep maken of joinen";
+      btn.addEventListener("click", groupAddFlow);
       groepContentEl.appendChild(btn);
       return;
     }
@@ -2774,20 +2906,33 @@
     groepTitleEl.textContent = group ? group.name : "Jouw groep";
     const sorted = [...groupState.members].sort((a, b) => b.streak - a.streak);
     const total = sorted.reduce((sum, m) => sum + (m.total || 0), 0);
-    const rows = sorted.map((m, i) => `
-      <div class="member-row ${m.user_id === groupState.userId ? "you" : ""}">
+    const iAmAdmin = isGroupAdmin(group);
+    const rows = sorted.map((m, i) => {
+      const isYou = m.user_id === groupState.userId;
+      const isCreator = !!group && m.user_id === group.created_by;
+      const isAdmin = isCreator || m.role === "admin";
+      let actions = "";
+      if (iAmAdmin && !isYou) {
+        const promote = isAdmin ? "" : `<button type="button" data-member-action="promote" data-user-id="${esc(m.user_id)}">Maak admin</button>`;
+        const remove = isCreator ? "" : `<button type="button" class="danger" data-member-action="remove" data-user-id="${esc(m.user_id)}" data-name="${esc(m.display_name)}">Verwijder</button>`;
+        if (promote || remove) actions = `<div class="member-admin">${promote}${remove}</div>`;
+      }
+      return `
+      <div class="member-row ${isYou ? "you" : ""}">
         <span class="member-rank">${i + 1}</span>
         <span class="member-avatar">${esc(m.initials)}${groupState.onlineIds.has(m.user_id) ? '<span class="presence-dot" title="Nu online"></span>' : ""}</span>
         <div class="member-info">
-          <div class="member-name">${m.user_id === groupState.userId ? "Jij" : esc(m.display_name)}</div>
+          <div class="member-name">${isYou ? "Jij" : esc(m.display_name)}${isAdmin ? '<span class="member-role">admin</span>' : ""}</div>
           <div class="member-sub">beste reeks ${m.best_streak}</div>
+          ${actions}
         </div>
         <span class="member-streak">${m.streak}</span>
-      </div>
-    `).join("");
+      </div>`;
+    }).join("");
     groepContentEl.innerHTML = `
       ${rows || '<div class="empty-note">Nog geen leden.</div>'}
       <div class="group-total"><strong>Samen ${total} keer</strong>De groep haalde 18:15 in totaal ${total} keer.</div>
+      ${group && group.join_code ? `<div class="group-code"><span>Groepscode</span><strong>${esc(group.join_code)}</strong></div>` : ""}
     `;
     const actions = document.createElement("div");
     actions.className = "group-actions";
@@ -2833,6 +2978,13 @@
     btn.addEventListener("click", changeNameFlow);
     profileSettingsEl.appendChild(btn);
   }
+
+  groepContentEl.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-member-action]");
+    if (!btn) return;
+    const member = groupState.members.find(m => m.user_id === btn.dataset.userId);
+    memberActionFlow(btn.dataset.memberAction, btn.dataset.userId, member ? member.display_name : "");
+  });
 
   applyTheme();
   initAds();
