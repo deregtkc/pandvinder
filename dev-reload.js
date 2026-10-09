@@ -32,6 +32,8 @@
       const page = await fetchFresh("/");
       if (!page.ok) return;
       if (!(await page.text()).includes(`window.DEV_STAMP="${stamp}"`)) return;
+      const script = await fetchFresh("/dev-reload.js");
+      if (!script.ok || !(script.headers.get("content-type") || "").includes("javascript")) return;
       markReload();
       location.reload();
     } catch (e) {} finally { busy = false; }
