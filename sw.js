@@ -3,7 +3,7 @@
 // ponytail: same-origin GETs only (Supabase/fonts/ads pass through); no cache versioning,
 // the revalidate step overwrites entries on every visit.
 const CACHE = "pv-shell";
-const SHELL = ["./", "index.html", "config.js", "manifest.webmanifest", "favicon.svg",
+const SHELL = ["./", "index.html", "config.js", "version.js", "manifest.webmanifest", "favicon.svg",
   "mutua-fides-bottle.png", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 
 self.addEventListener("install", e => e.waitUntil(
