@@ -185,6 +185,21 @@
   }
   .toggle-switch[data-on="false"]::after { transform: translateX(0); }
 
+  /* --- Motion: screens, panels, menu and rows ease in; reduced-motion switches it off --- */
+  @keyframes pv-screen-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes pv-panel-in { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+  @keyframes pv-pop-in { from { opacity: 0; transform: scale(0.9) translateY(6px); } to { opacity: 1; transform: none; } }
+  @keyframes pv-card-in { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: none; } }
+  @keyframes pv-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .screen.active { animation: pv-screen-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  .panel:not([hidden]) { animation: pv-panel-in 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  #tab-bar:not([hidden]), #bell-btn:not([hidden]) { animation: pv-pop-in 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  .member-row { animation: pv-rise 0.3s ease both; animation-delay: calc(var(--i, 0) * 40ms); }
+  @media (prefers-reduced-motion: reduce) {
+    .screen.active, .panel, #tab-bar, #bell-btn, .calibrate-card, .member-row { animation: none !important; }
+    #needle-svg { transition: none; }
+  }
+
   /* --- Calibration hint: figure-8 that fades out on its own --- */
   .calibrate-overlay {
     display: none;
@@ -198,6 +213,7 @@
     transition: opacity 1s ease;
   }
   .calibrate-overlay.on { display: flex; }
+  .calibrate-overlay.on .calibrate-card { animation: pv-card-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
   .calibrate-overlay.fade { opacity: 0; }
   .calibrate-card {
     display: flex;
@@ -296,7 +312,7 @@
     width: 62%;
     height: 62%;
     transform: rotate(0deg);
-    transition: transform 0.12s linear;
+    transition: transform 0.16s ease-out;
     filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
     will-change: transform;
     cursor: pointer;
@@ -1125,7 +1141,7 @@
       <svg viewBox="0 0 200 110" aria-hidden="true">
         <path d="M100 55 C80 15 20 15 20 55 C20 95 80 95 100 55 C120 15 180 15 180 55 C180 95 120 95 100 55 Z" fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="3 5" opacity="0.6"/>
         <g>
-          <animateMotion dur="1.6s" repeatCount="indefinite" path="M100 55 C80 15 20 15 20 55 C20 95 80 95 100 55 C120 15 180 15 180 55 C180 95 120 95 100 55 Z"/>
+          <animateMotion dur="1.6s" repeatCount="indefinite" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.6 1" path="M100 55 C80 15 20 15 20 55 C20 95 80 95 100 55 C120 15 180 15 180 55 C180 95 120 95 100 55 Z"/>
           <g>
             <animateTransform attributeName="transform" type="rotate" values="-35;35;-35" dur="0.8s" repeatCount="indefinite"/>
             <rect x="-8" y="-14" width="16" height="28" rx="4" fill="var(--bg)" stroke="var(--fg)" stroke-width="2.5"/>
@@ -2918,7 +2934,7 @@
         if (promote || remove) actions = `<div class="member-admin">${promote}${remove}</div>`;
       }
       return `
-      <div class="member-row ${isYou ? "you" : ""}">
+      <div class="member-row ${isYou ? "you" : ""}" style="--i:${i}">
         <span class="member-rank">${i + 1}</span>
         <span class="member-avatar">${esc(m.initials)}${groupState.onlineIds.has(m.user_id) ? '<span class="presence-dot" title="Nu online"></span>' : ""}</span>
         <div class="member-info">
