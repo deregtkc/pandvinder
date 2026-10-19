@@ -655,6 +655,18 @@
     cursor: pointer;
   }
   .member-admin button.danger { color: var(--accent-active); }
+  .join-form { display: flex; gap: 8px; margin-top: 12px; }
+  .join-form .field-input { flex: 1; min-width: 0; text-transform: uppercase; letter-spacing: 0.1em; }
+  .text-link {
+    display: block;
+    margin: 18px auto 0;
+    background: none;
+    border: none;
+    font: inherit;
+    font-weight: 700;
+    color: var(--accent);
+    cursor: pointer;
+  }
   .group-total {
     background: var(--sage-pale);
     color: var(--sage-dark);
@@ -2586,9 +2598,12 @@
   }
 
   async function joinByCodeFlow() {
-    if (!(await ensureProfile())) return;
     const input = await showPrompt("Groepscode invoeren", { placeholder: "Bijv. K7QF2D" });
-    if (!input) return;
+    if (input) await joinByCode(input);
+  }
+
+  async function joinByCode(input) {
+    if (!(await ensureProfile())) return;
     try {
       const state = loadWitness();
       const { data, error } = await sb.rpc("join_group_by_code", {
@@ -2760,13 +2775,20 @@
     if (!groupState.myGroups.length) {
       groupSwitcherEl.hidden = true;
       groepTitleEl.textContent = "Jouw groepen";
-      groepContentEl.innerHTML = `<div class="empty-note">Nog geen groep. Maak er een, of voer de code van een vriend in.</div>`;
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "btn-outline";
-      btn.textContent = "Groep maken of joinen";
-      btn.addEventListener("click", groupAddFlow);
-      groepContentEl.appendChild(btn);
+      groepContentEl.innerHTML = `
+        <div class="empty-note">Heb je een code van een vriend? Voer die hier in.</div>
+        <form class="join-form" id="join-form">
+          <input type="text" class="field-input" id="join-code-input" placeholder="Bijv. K7QF2D" autocomplete="off" autocapitalize="characters" maxlength="12">
+          <button type="submit" class="btn-outline">Joinen</button>
+        </form>
+        <button type="button" class="text-link" id="create-group-link">Nieuwe groep maken</button>
+      `;
+      document.getElementById("join-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const input = document.getElementById("join-code-input").value;
+        if (input.trim()) joinByCode(input);
+      });
+      document.getElementById("create-group-link").addEventListener("click", createGroupFlow);
       return;
     }
     groupSwitcherEl.hidden = false;
