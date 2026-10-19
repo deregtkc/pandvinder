@@ -46,53 +46,6 @@
     --font-display: "Caprasimo", serif;
     --font-body: "Figtree", system-ui, sans-serif;
   }
-  [data-theme="dark"] {
-    --bg: #2e2b25;
-    --fg: #f5ead8;
-    --muted: #a99f8e;
-    --dial: #3a362d;
-    --needle: #f5ead8;
-  }
-  [data-theme="classic"] {
-    --bg: #ebddc5;
-    --fg: #201e1d;
-    --muted: #6f6355;
-    --dial: #ddcaa8;
-    --needle: #201e1d;
-  }
-  [data-theme="mutuafides"] {
-    --bg: #f5ead8;
-  }
-  [data-theme="mutuafides"] .center-dot { display: none; }
-
-  /* "Kater" (hangover): everything washed out and a bit blurry. */
-  [data-theme="kater"] {
-    --bg: #c0b6a5;
-    --fg: #4a453d;
-    --muted: #7d7466;
-    --needle: #4a453d;
-    --dial: #ab9f8c;
-  }
-  [data-theme="kater"] #needle-svg {
-    filter: grayscale(1) blur(0.8px) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.15));
-  }
-
-  /* Disco: the whole app slowly cycles through the rainbow. */
-  [data-theme="disco"] {
-    --bg: #201e1d;
-    --fg: #f5ead8;
-    --muted: #d9c9b0;
-    --needle: #f6a06b;
-    --dial: #3a362d;
-  }
-  [data-theme="disco"] #app {
-    animation: pv-disco-hue 4s linear infinite;
-  }
-  @keyframes pv-disco-hue {
-    from { filter: hue-rotate(0deg); }
-    to { filter: hue-rotate(360deg); }
-  }
-
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
     margin: 0;
@@ -313,15 +266,6 @@
     transition: transform 0.16s ease-out;
     filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
     will-change: transform;
-    cursor: pointer;
-  }
-
-  .center-dot {
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--accent);
   }
 
   .info {
@@ -890,26 +834,6 @@
     font-weight: 400;
     font-size: 1.05rem;
   }
-  .swatch-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 22px; }
-  .swatch-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    width: 58px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-family: inherit;
-  }
-  .swatch-dot {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    border: 3px solid transparent;
-  }
-  .swatch-item[data-active="true"] .swatch-dot { border-color: var(--accent); }
-  .swatch-item span { font-size: 0.68rem; color: var(--muted); }
   .setting-row {
     display: flex;
     align-items: center;
@@ -1161,7 +1085,6 @@
           <div class="dial" id="dial"></div>
           <div class="dial-tick"></div>
           <svg id="needle-svg" viewBox="0 0 100 100"></svg>
-          <div class="center-dot"></div>
         </div>
       </div>
 
@@ -1226,12 +1149,6 @@
       <div class="help-list">
         <div class="help-item">
           <div class="help-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m16.2 7.8-2.1 6.3-6.3 2.1 2.1-6.3z"></path></svg>
-          </div>
-          <div class="help-text"><strong>Tik op de fles</strong><span>Wissel van thema - van klassiek kompas tot kater.</span></div>
-        </div>
-        <div class="help-item">
-          <div class="help-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg>
           </div>
           <div class="help-text"><strong>Tik op de afstand</strong><span>Opent de route naar het pand in Maps.</span></div>
@@ -1244,8 +1161,6 @@
         </div>
       </div>
       <div class="panel-divider"></div>
-      <h5>Thema</h5>
-      <div class="swatch-row" id="swatch-row"></div>
       <div id="sound-settings"></div>
       <div id="profile-settings"></div>
     </div>
@@ -1365,18 +1280,6 @@
   const isIOSNonSafari = isIOS && /CriOS|FxiOS|EdgiOS|OPiOS/.test(navigator.userAgent);
   const iosMotionHint = "Ga naar iOS-Instellingen → Privacy en beveiliging → Beweging en fitness en zet toegang aan voor je browser-app. Dat is een andere schakelaar dan de toestemming die je in de browser zelf ziet, en herstart de browser-app daarna.";
 
-  const THEMES = ["mutuafides", "light", "dark", "classic", "kater", "disco"];
-  const THEME_KEY = "pv-theme";
-  function loadStoredThemeIndex() {
-    const idx = THEMES.indexOf(lsGet(THEME_KEY));
-    return idx >= 0 ? idx : 0;
-  }
-  let themeIndex = loadStoredThemeIndex();
-
-  const ARROW_NEEDLE = `
-    <polygon points="50,6 60,54 50,46 40,54" fill="var(--accent)"/>
-    <polygon points="50,94 60,54 50,62 40,54" fill="var(--needle)"/>
-  `;
   // "Mutua Fides" bottle: an AI-generated, user-designed original bottle
   // (own label, own emblem - not a reproduction of any real brand), cap at
   // the top of the viewBox as the "pointing" end. Image is 555x1475px.
@@ -1384,20 +1287,6 @@
     <image href="mutua-fides-bottle.png" x="33.1" y="5" width="33.9" height="90"
            preserveAspectRatio="xMidYMid meet"/>
   `;
-  const NEEDLE_BY_THEME = { mutuafides: MUTUA_FIDES_NEEDLE };
-  function buildNeedle() {
-    needle.innerHTML = NEEDLE_BY_THEME[THEMES[themeIndex]] || ARROW_NEEDLE;
-  }
-  // Preview color + label for each theme, used by the swatch picker in Uitleg.
-  const THEME_SWATCH = {
-    mutuafides: { bg: "#f5ead8", ring: "#c67139", dot: "#7a8a5e", label: "Mutua" },
-    light: { bg: "#f9f4ed", label: "Licht" },
-    dark: { bg: "#2e2b25", label: "Donker" },
-    classic: { bg: "#ebddc5", label: "Klassiek" },
-    kater: { bg: "#c0b6a5", label: "Kater" },
-    disco: { bg: "linear-gradient(135deg, #c67139, #7a8a5e)", label: "Disco" },
-  };
-
   const app = document.getElementById("app");
   const screens = {
     start: document.getElementById("start-screen"),
@@ -1432,7 +1321,6 @@
   const onlineSummaryEl = document.getElementById("online-summary");
   const onlinePillEl = document.getElementById("online-pill");
   const onlinePillTextEl = document.getElementById("online-pill-text");
-  const swatchRowEl = document.getElementById("swatch-row");
   const soundSettingsEl = document.getElementById("sound-settings");
   const profileSettingsEl = document.getElementById("profile-settings");
   const celebrateScreen = document.getElementById("celebrate-screen");
@@ -1507,40 +1395,6 @@
     errorTitle.textContent = title;
     errorText.textContent = text;
     showScreen("error");
-  }
-
-  function applyTheme() {
-    document.documentElement.setAttribute("data-theme", THEMES[themeIndex]);
-    buildNeedle();
-    lsSet(THEME_KEY, THEMES[themeIndex]);
-    renderSwatches();
-  }
-  needle.addEventListener("click", () => {
-    themeIndex = (themeIndex + 1) % THEMES.length;
-    applyTheme();
-  });
-
-  function renderSwatches() {
-    swatchRowEl.innerHTML = "";
-    THEMES.forEach((name, i) => {
-      const info = THEME_SWATCH[name] || {};
-      const item = document.createElement("button");
-      item.type = "button";
-      item.className = "swatch-item";
-      item.dataset.active = String(i === themeIndex);
-      const dot = document.createElement("span");
-      dot.className = "swatch-dot";
-      dot.style.background = info.bg || "#ccc";
-      item.appendChild(dot);
-      const label = document.createElement("span");
-      label.textContent = info.label || name;
-      item.appendChild(label);
-      item.addEventListener("click", () => {
-        themeIndex = i;
-        applyTheme();
-      });
-      swatchRowEl.appendChild(item);
-    });
   }
 
   // Text destination so Maps resolves to the actual business listing,
@@ -3000,7 +2854,7 @@
     memberActionFlow(btn.dataset.memberAction, btn.dataset.userId, member ? member.display_name : "");
   });
 
-  applyTheme();
+  needle.innerHTML = MUTUA_FIDES_NEEDLE;
   initAds();
   if (supabaseConfigured) {
     ensureAnonSession().then(joinGroupFromUrl);
