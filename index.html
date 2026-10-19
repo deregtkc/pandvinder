@@ -2480,10 +2480,6 @@
   }
   function startGroepOnlineRefresh() {
     stopGroepOnlineRefresh();
-    if (groupState.myGroups.length && supabaseConfigured) {
-      onlineSummaryEl.hidden = false;
-      renderOnlineSummary(null);
-    }
     refreshGroepOnline();
     groepOnlineTimer = setInterval(refreshGroepOnline, 30000);
   }
@@ -2493,10 +2489,6 @@
 
   function renderOnlineSummary(online) {
     onlineSummaryEl.hidden = false;
-    if (!online) {
-      onlineSummaryEl.innerHTML = `<div class="online-summary-text">Laden…</div>`;
-      return;
-    }
     const avatars = online.friends.slice(0, 5).map(f =>
       `<span class="member-avatar" title="${esc(f.display_name)}">${esc(f.initials)}</span>`
     ).join("");
