@@ -10,23 +10,23 @@
 <meta name="theme-color" content="#f5ead8">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Pandvinder">
+<meta name="apple-mobile-web-app-title" content="Pandfinder">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;600;700&display=swap">
-<title>Pandvinder - kompas naar het 8e MF</title>
+<title>Pandfinder - kompas naar het 8e MF</title>
 <meta name="description" content="Een kompas dat altijd naar Mutua Fides in Groningen wijst. Mis nooit meer de 18:15.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://pandfinder.nl">
-<meta property="og:title" content="Pandvinder">
+<meta property="og:title" content="Pandfinder">
 <meta property="og:description" content="Een kompas dat altijd naar Mutua Fides in Groningen wijst. Mis nooit meer de 18:15.">
 <meta property="og:image" content="https://pandfinder.nl/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="nl_NL">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Pandvinder">
+<meta name="twitter:title" content="Pandfinder">
 <meta name="twitter:description" content="Een kompas dat altijd naar Mutua Fides in Groningen wijst. Mis nooit meer de 18:15.">
 <meta name="twitter:image" content="https://pandfinder.nl/og-image.png">
 <style>
@@ -1064,7 +1064,7 @@
   <!-- Start screen -->
   <div class="screen active" id="start-screen">
     <img src="mutua-fides-bottle.png" alt="" style="width:96px;height:auto;transform:rotate(-8deg);margin-bottom:20px;">
-    <h1>Pandvinder</h1>
+    <h1>Pandfinder</h1>
     <p class="sub">Wijst de weg naar het 8e pand, waar je ook bent ter wereld. Heeft locatie- en kompastoestemming nodig.</p>
     <button class="primary" id="start-btn">Wijs me de weg</button>
     <button type="button" class="install-btn" id="install-btn" hidden>Installeer als app</button>
@@ -1707,7 +1707,7 @@
   });
   celebrateShareBtn.addEventListener("click", async () => {
     const state = loadWitness();
-    const text = `Ik heb 18:15 net weer gehaald bij Pandvinder - ${state.streak} op rij!`;
+    const text = `Ik heb 18:15 net weer gehaald bij Pandfinder - ${state.streak} op rij!`;
     if (navigator.share) {
       try { await navigator.share({ text }); } catch (e) { /* user cancelled - ignore */ }
     } else {
@@ -1909,7 +1909,7 @@
 
   function onPositionError(err) {
     if (err && err.code === err.PERMISSION_DENIED) {
-      showError("Locatie niet beschikbaar", "Pandvinder kon je locatie niet gebruiken. Controleer of locatievoorzieningen zijn ingeschakeld en toestemming is verleend, en probeer het opnieuw.");
+      showError("Locatie niet beschikbaar", "Pandfinder kon je locatie niet gebruiken. Controleer of locatievoorzieningen zijn ingeschakeld en toestemming is verleend, en probeer het opnieuw.");
     } else {
       // Transient (timeout / temporarily unavailable, e.g. indoors) - keep watching.
       warningEl.textContent = "Wachten op GPS-signaal…";
@@ -1988,7 +1988,7 @@
 
   function startWatchingPosition() {
     if (!("geolocation" in navigator)) {
-      showError("Geen GPS beschikbaar", "Dit apparaat of deze browser ondersteunt geen locatietoegang, die Pandvinder nodig heeft om Vindicat te vinden.");
+      showError("Geen GPS beschikbaar", "Dit apparaat of deze browser ondersteunt geen locatietoegang, die Pandfinder nodig heeft om Vindicat te vinden.");
       return false;
     }
     watchId = navigator.geolocation.watchPosition(onPosition, onPositionError, {
@@ -2002,7 +2002,7 @@
   function startWatchingOrientation() {
     const hasOrientation = "DeviceOrientationEvent" in window;
     if (!hasOrientation) {
-      showError("Geen kompas beschikbaar", "Dit apparaat lijkt geen oriëntatiesensor te hebben, die Pandvinder nodig heeft om de weg te wijzen.");
+      showError("Geen kompas beschikbaar", "Dit apparaat lijkt geen oriëntatiesensor te hebben, die Pandfinder nodig heeft om de weg te wijzen.");
       return false;
     }
     if (orientationEventName) {
@@ -2018,8 +2018,8 @@
         showError(
           "Kompas reageert niet",
           isIOSNonSafari
-            ? `Pandvinder ontvangt geen kompasgegevens. ${iosMotionHint}`
-            : "Pandvinder ontvangt geen kompasgegevens. Gebruik je Firefox? Controleer dan Instellingen → Sitemachtigingen → bewegings- en lichtsensoren, of probeer het in Chrome. Zorg er anders voor dat bewegings- en oriëntatietoegang voor deze site is toegestaan, en probeer het opnieuw."
+            ? `Pandfinder ontvangt geen kompasgegevens. ${iosMotionHint}`
+            : "Pandfinder ontvangt geen kompasgegevens. Gebruik je Firefox? Controleer dan Instellingen → Sitemachtigingen → bewegings- en lichtsensoren, of probeer het in Chrome. Zorg er anders voor dat bewegings- en oriëntatietoegang voor deze site is toegestaan, en probeer het opnieuw."
         );
       }
     }, 6000);
@@ -2038,8 +2038,8 @@
           showError(
             "Kompastoestemming geweigerd",
             isIOSNonSafari
-              ? `Pandvinder heeft toegang tot beweging en oriëntatie nodig om als kompas te werken. ${iosMotionHint}`
-              : "Pandvinder heeft toegang tot beweging en oriëntatie nodig om als kompas te werken. Sta dit toe in je browserinstellingen en probeer het opnieuw."
+              ? `Pandfinder heeft toegang tot beweging en oriëntatie nodig om als kompas te werken. ${iosMotionHint}`
+              : "Pandfinder heeft toegang tot beweging en oriëntatie nodig om als kompas te werken. Sta dit toe in je browserinstellingen en probeer het opnieuw."
           );
           return;
         }
@@ -2048,8 +2048,8 @@
       showError(
         "Kompastoestemming geweigerd",
         isIOSNonSafari
-          ? `Pandvinder heeft toegang tot beweging en oriëntatie nodig om als kompas te werken. ${iosMotionHint}`
-          : "Pandvinder heeft toegang tot beweging en oriëntatie nodig om als kompas te werken. Sta dit toe in je browserinstellingen en probeer het opnieuw."
+          ? `Pandfinder heeft toegang tot beweging en oriëntatie nodig om als kompas te werken. ${iosMotionHint}`
+          : "Pandfinder heeft toegang tot beweging en oriëntatie nodig om als kompas te werken. Sta dit toe in je browserinstellingen en probeer het opnieuw."
       );
       return;
     }
@@ -2271,11 +2271,11 @@
         installPrompt = null;
         installBtn.hidden = true;
       } else if (isIOS) {
-        showAlert("Installeer Pandvinder", isIOSNonSafari
+        showAlert("Installeer Pandfinder", isIOSNonSafari
           ? "Tik op het deel-icoon (vierkantje met pijl) in de adresbalk of het menu en kies 'Zet op beginscherm'. Lukt dat niet? Open pandfinder.nl in Safari en doe dit daar."
           : "Tik op het deel-icoon (vierkantje met pijl) onderin en kies 'Zet op beginscherm'.");
       } else {
-        showAlert("Installeer Pandvinder", "Open het browsermenu (⋮) en kies 'App installeren' of 'Toevoegen aan startscherm'.");
+        showAlert("Installeer Pandfinder", "Open het browsermenu (⋮) en kies 'App installeren' of 'Toevoegen aan startscherm'.");
       }
     });
   }
@@ -2509,7 +2509,7 @@
       <div class="online-avatars">${avatars}</div>
       <div class="online-summary-text">
         <strong>${online.friends.length}</strong> ${friendWord} nu online
-        <br>${online.total} in totaal op Pandvinder nu
+        <br>${online.total} in totaal op Pandfinder nu
       </div>
     `;
   }
@@ -2723,7 +2723,7 @@
   async function inviteFriend() {
     const group = activeGroup();
     if (!group || !group.join_code) return;
-    const text = `Doe mee met onze 18:15-groep op Pandvinder. Voer code ${group.join_code} in.`;
+    const text = `Doe mee met onze groep op Pandfinder! Voer code ${group.join_code} in.`;
     const url = `${window.location.origin}${window.location.pathname}`;
     if (navigator.share) {
       try { await navigator.share({ text, url }); return; } catch (e) { /* fall through to copy */ }

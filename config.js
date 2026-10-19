@@ -1,4 +1,4 @@
-// Master switch for ad monetization on Pandvinder.
+// Master switch for ad monetization on Pandfinder.
 //
 // Set ADS_ENABLED to true once Google AdSense has approved the site and
 // you've filled in your publisher ID below, then commit + push to redeploy.
