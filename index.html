@@ -2690,6 +2690,11 @@
   async function leaveGroupFlow() {
     const group = activeGroup();
     if (!group) return;
+    const confirmed = await showChoice(`${group.name} verlaten?`, {
+      message: "Je verdwijnt uit de groep. Als je de laatste bent, wordt de groep verwijderd.",
+      options: [{ label: "Ja, verlaten", value: true, primary: true }],
+    });
+    if (!confirmed) return;
     try {
       const { data, error } = await sb.from("group_members")
         .delete().eq("group_id", group.id).eq("user_id", groupState.userId)
