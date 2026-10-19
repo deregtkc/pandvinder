@@ -575,6 +575,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    min-height: 62px;
     background: var(--sage-pale);
     color: var(--sage-dark);
     border-radius: 16px;
@@ -2462,6 +2463,7 @@
   // off when the Groep panel opens/switches group, and on a light interval
   // while it stays open.
   let groepOnlineTimer = null;
+  let groepOnlineSig = null;
   async function refreshGroepOnline() {
     if (!supabaseConfigured || !groupState.myGroups.length) {
       onlineSummaryEl.hidden = true;
@@ -2469,12 +2471,19 @@
     }
     const ids = groupState.members.map(m => m.user_id);
     const [onlineIds, counts] = await Promise.all([fetchOnlineUserIds(ids), fetchOnlineCounts()]);
+    const sig = `${groupState.activeGroupId}|${[...onlineIds].sort().join(",")}|${counts.total}|${counts.friends.map(f => f.user_id).sort().join(",")}`;
+    const changed = sig !== groepOnlineSig;
+    groepOnlineSig = sig;
     groupState.onlineIds = onlineIds;
     renderOnlineSummary(counts);
-    if (activePanel === "groep") renderGroepPanel();
+    if (changed && activePanel === "groep") renderGroepPanel();
   }
   function startGroepOnlineRefresh() {
     stopGroepOnlineRefresh();
+    if (groupState.myGroups.length && supabaseConfigured) {
+      onlineSummaryEl.hidden = false;
+      renderOnlineSummary(null);
+    }
     refreshGroepOnline();
     groepOnlineTimer = setInterval(refreshGroepOnline, 30000);
   }
@@ -2483,11 +2492,11 @@
   }
 
   function renderOnlineSummary(online) {
-    if (!online || (!online.friends.length && !online.total)) {
-      onlineSummaryEl.hidden = true;
+    onlineSummaryEl.hidden = false;
+    if (!online) {
+      onlineSummaryEl.innerHTML = `<div class="online-summary-text">Laden…</div>`;
       return;
     }
-    onlineSummaryEl.hidden = false;
     const avatars = online.friends.slice(0, 5).map(f =>
       `<span class="member-avatar" title="${esc(f.display_name)}">${esc(f.initials)}</span>`
     ).join("");
