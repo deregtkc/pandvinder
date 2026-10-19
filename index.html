@@ -190,13 +190,11 @@
   @keyframes pv-panel-in { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
   @keyframes pv-pop-in { from { opacity: 0; transform: scale(0.9) translateY(6px); } to { opacity: 1; transform: none; } }
   @keyframes pv-card-in { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: none; } }
-  @keyframes pv-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
   .screen.active { animation: pv-screen-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
   .panel:not([hidden]) { animation: pv-panel-in 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
   #tab-bar:not([hidden]), #bell-btn:not([hidden]) { animation: pv-pop-in 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-  .member-row { animation: pv-rise 0.3s ease both; animation-delay: calc(var(--i, 0) * 40ms); }
   @media (prefers-reduced-motion: reduce) {
-    .screen.active, .panel, #tab-bar, #bell-btn, .calibrate-card, .member-row { animation: none !important; }
+    .screen.active, .panel, #tab-bar, #bell-btn, .calibrate-card { animation: none !important; }
     #needle-svg { transition: none; }
   }
 
@@ -2934,7 +2932,7 @@
         if (promote || remove) actions = `<div class="member-admin">${promote}${remove}</div>`;
       }
       return `
-      <div class="member-row ${isYou ? "you" : ""}" style="--i:${i}">
+      <div class="member-row ${isYou ? "you" : ""}">
         <span class="member-rank">${i + 1}</span>
         <span class="member-avatar">${esc(m.initials)}${groupState.onlineIds.has(m.user_id) ? '<span class="presence-dot" title="Nu online"></span>' : ""}</span>
         <div class="member-info">
