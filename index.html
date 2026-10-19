@@ -2183,7 +2183,7 @@
 
   // --- Stylized prompt/alert modals, replacing window.prompt/window.alert ---
   let promptResolve = null;
-  function showPrompt(title, { message, placeholder, value } = {}) {
+  function showPrompt(title, { message, placeholder, value, autofocus = true } = {}) {
     return new Promise((resolve) => {
       promptResolve = resolve;
       promptTitleEl.textContent = title;
@@ -2196,7 +2196,7 @@
       promptInputEl.placeholder = placeholder || "";
       promptInputEl.value = value || "";
       promptOverlay.hidden = false;
-      setTimeout(() => { promptInputEl.focus(); promptInputEl.select(); }, 50);
+      if (autofocus) setTimeout(() => { promptInputEl.focus(); promptInputEl.select(); }, 50);
     });
   }
   function closePrompt(result) {
@@ -2518,7 +2518,7 @@
     if (!sb || !groupState.userId) return false;
     if (groupState.myProfile) return true;
     try {
-      const name = await showPrompt("Hoe heet je?", { message: "Zichtbaar voor je groepsgenoten.", placeholder: "Je naam" });
+      const name = await showPrompt("Hoe heet je?", { message: "Zichtbaar voor je groepsgenoten.", placeholder: "Je naam", autofocus: false });
       if (!name) return false;
       const { error } = await sb.from("profiles").insert({
         id: groupState.userId,
@@ -2580,7 +2580,7 @@
 
   async function createGroupFlow() {
     if (!(await ensureProfile())) return;
-    const name = await showPrompt("Naam voor je groep?", { placeholder: "Iets grappigs" });
+    const name = await showPrompt("Naam voor je groep?", { placeholder: "Iets grappigs", autofocus: false });
     if (!name) return;
     try {
       const state = loadWitness();
