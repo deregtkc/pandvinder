@@ -1,4 +1,4 @@
-const APP_VERSION = "V1.15";
+const APP_VERSION = "V1.16";
 
 document.addEventListener("DOMContentLoaded", () => {
   const el = document.createElement("div");
